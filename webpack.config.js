@@ -43,7 +43,14 @@ module.exports = async (env, options) => {
         type: "https",
         options: isProd ? {} : await devCerts.getHttpsServerOptions()
       },
-      port: 3000
+      port: 3000,
+      proxy: [
+        {
+          context: ['/api'],
+          target: 'http://localhost:3001',
+          secure: false,
+        }
+      ]
     }
   };
 

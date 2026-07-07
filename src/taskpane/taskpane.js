@@ -1,16 +1,17 @@
 /* global Office, Word */
+import { analyzeLinguistic, interpretLinguisticScore } from "./linguistic-engine.js";
+import { initApiDetector, setApiConsent, detectWithApi, interpretApiScore, resetApiDetector, getApiStatus } from "./api-detector.js";
+import { computeForensicScore, buildForensicCertificate } from "./forensic-engine.js";
 
 /* ============================================================
-   Creative Alibi — Word Add-in
-   Merekam METADATA proses kerja (panjang teks, waktu, jeda,
-   jumlah perubahan). Isi tulisan (konten) TIDAK PERNAH disimpan.
+   State & Configuration
    ============================================================ */
 
-const POLL_MS = 1200;          // frekuensi polling panjang dokumen
-const PAUSE_THRESHOLD_MS = 4000; // jeda >= ini dianggap "pause" nyata
-const BURST_CHAR_THRESHOLD = 40; // perubahan panjang > ini dalam 1 interval = lonjakan mendadak
+const POLL_MS = 1200;
+const PAUSE_THRESHOLD_MS = 4000;
+const BURST_CHAR_THRESHOLD = 40;
 
-let state = {
+let session = {
   running: false,
   paused: false,
   startedAt: null,
@@ -18,172 +19,346 @@ let state = {
   lastLen: null,
   lastChangeAt: null,
   samples: 0,
-  edits: [],      // { t, delta }  -- angka saja, tidak ada teks
-  pauses: [],     // durasi ms tiap jeda
+  edits: [],
+  pauses: [],
   bursts: 0,
-  revisions: 0,   // delta negatif (penghapusan/pengeditan)
+  revisions: 0,
   pollHandle: null,
   timerHandle: null,
-  lastCertificate: null
+  
+  // Results
+  textAtStop: "",
+  l1Score: null,
+  l2Result: null,
+  l3Result: null,
+  forensicResult: null,
+  certificate: null
 };
 
+let config = {
+  l2Enabled: true,
+  l3Enabled: false,
+  l3Provider: "gptzero",
+  l3Proxy: "http://localhost:3001",
+  l3Consent: false
+};
+
+/* ============================================================
+   Initialization
+   ============================================================ */
+
 Office.onReady(() => {
-  document.getElementById("btn-start").onclick = startRecording;
+  // Tabs
+  document.querySelectorAll(".ca-tab").forEach(tab => {
+    tab.addEventListener("click", () => switchTab(tab.dataset.target));
+  });
+
+  // Main Buttons
+  document.getElementById("btn-start").onclick = startSession;
   document.getElementById("btn-pause").onclick = togglePause;
-  document.getElementById("btn-stop").onclick = stopRecording;
-  document.getElementById("btn-certificate").onclick = generateCertificate;
-  document.getElementById("btn-download").onclick = downloadCertificate;
-  document.getElementById("btn-insert").onclick = insertCertificateIntoDoc;
+  document.getElementById("btn-stop").onclick = stopSession;
   document.getElementById("btn-reset").onclick = resetSession;
-  drawActivity();
+  
+  // Certificate Buttons
+  document.getElementById("btn-generate-cert").onclick = generateCertificate;
+  document.getElementById("btn-download").onclick = downloadCertificate;
+  document.getElementById("btn-insert").onclick = insertCertificate;
+
+  // Settings
+  document.getElementById("btn-settings").onclick = () => {
+    document.getElementById("settings-overlay").classList.remove("hidden");
+  };
+  document.getElementById("btn-close-settings").onclick = () => {
+    document.getElementById("settings-overlay").classList.add("hidden");
+    applySettings();
+  };
+
+  // Settings Toggles
+  document.getElementById("setting-l3").onchange = (e) => {
+    const configBox = document.getElementById("l3-config");
+    if (e.target.checked) configBox.classList.remove("hidden");
+    else configBox.classList.add("hidden");
+  };
+
+  applySettings();
+  drawActivityCanvas();
 });
 
-/* ---------------------------- Recording control ---------------------------- */
+function applySettings() {
+  config.l2Enabled = document.getElementById("setting-l2").checked;
+  config.l3Enabled = document.getElementById("setting-l3").checked;
+  config.l3Provider = document.getElementById("setting-l3-provider").value;
+  config.l3Proxy = document.getElementById("setting-l3-proxy").value;
+  config.l3Consent = document.getElementById("setting-l3-consent").checked;
 
-async function startRecording() {
-  state.running = true;
-  state.paused = false;
-  state.startedAt = Date.now();
-  state.elapsedBeforePause = 0;
-  state.lastLen = null;
-  state.lastChangeAt = Date.now();
-  state.samples = 0;
-  state.edits = [];
-  state.pauses = [];
-  state.bursts = 0;
-  state.revisions = 0;
+  if (config.l3Enabled) {
+    initApiDetector({ provider: config.l3Provider, proxyUrl: config.l3Proxy });
+    setApiConsent(config.l3Consent);
+  } else {
+    resetApiDetector();
+  }
 
-  setStatus("recording", "Merekam proses…");
-  toggleButtons({ start: true, pause: false, stop: false, cert: true });
+  // Update UI indicators
+  document.getElementById("badge-l2").className = `ca-layer-badge ${config.l2Enabled ? "ca-layer-badge--active" : ""}`;
+  document.getElementById("badge-l3").className = `ca-layer-badge ${config.l3Enabled && config.l3Consent ? "ca-layer-badge--active" : ""}`;
+}
 
-  state.pollHandle = setInterval(pollDocument, POLL_MS);
-  state.timerHandle = setInterval(updateTimer, 250);
+function switchTab(targetId) {
+  document.querySelectorAll(".ca-tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".ca-tab-content").forEach(c => c.classList.remove("active"));
+  
+  document.querySelector(`.ca-tab[data-target="${targetId}"]`).classList.add("active");
+  document.getElementById(targetId).classList.add("active");
+}
+
+/* ============================================================
+   Recording Control (Layer 1 - Behavioral)
+   ============================================================ */
+
+async function startSession() {
+  if (session.running) return;
+
+  session.running = true;
+  session.paused = false;
+  session.startedAt = Date.now();
+  session.elapsedBeforePause = 0;
+  session.lastLen = null;
+  session.lastChangeAt = Date.now();
+  
+  // Clear previous results but keep counts
+  session.textAtStop = "";
+  session.l1Score = null;
+  session.l2Result = null;
+  session.l3Result = null;
+  session.forensicResult = null;
+  
+  updateStatusUI("recording", "Sedang Merekam");
+  toggleButtons(true, false, false);
+  
+  session.pollHandle = setInterval(pollDocumentLength, POLL_MS);
+  session.timerHandle = setInterval(updateTimer, 500);
 }
 
 function togglePause() {
-  if (!state.running) return;
-  if (!state.paused) {
-    state.paused = true;
-    clearInterval(state.pollHandle);
-    state.elapsedBeforePause += Date.now() - state.startedAt;
-    setStatus("paused", "Dijeda");
-    document.getElementById("btn-pause").textContent = "▶ Lanjutkan";
+  if (!session.running) return;
+  
+  if (!session.paused) {
+    session.paused = true;
+    clearInterval(session.pollHandle);
+    session.elapsedBeforePause += Date.now() - session.startedAt;
+    updateStatusUI("paused", "Dijeda");
+    document.getElementById("btn-pause").textContent = "Lanjutkan";
   } else {
-    state.paused = false;
-    state.startedAt = Date.now();
-    state.lastChangeAt = Date.now();
-    state.pollHandle = setInterval(pollDocument, POLL_MS);
-    setStatus("recording", "Merekam proses…");
-    document.getElementById("btn-pause").textContent = "⏸ Jeda";
+    session.paused = false;
+    session.startedAt = Date.now();
+    session.lastChangeAt = Date.now();
+    session.pollHandle = setInterval(pollDocumentLength, POLL_MS);
+    updateStatusUI("recording", "Sedang Merekam");
+    document.getElementById("btn-pause").textContent = "Jeda";
   }
 }
 
-function stopRecording() {
-  state.running = false;
-  if (!state.paused) {
-    state.elapsedBeforePause += Date.now() - state.startedAt;
+async function stopSession() {
+  if (!session.running) return;
+  
+  session.running = false;
+  if (!session.paused) {
+    session.elapsedBeforePause += Date.now() - session.startedAt;
   }
-  clearInterval(state.pollHandle);
-  clearInterval(state.timerHandle);
-  setStatus("idle", "Rekaman selesai");
-  toggleButtons({ start: false, pause: true, stop: true, cert: false, download: true, insert: true });
-  document.getElementById("btn-start").textContent = "▶ Mulai Sesi Baru";
-  computeAndRenderScore();
+  
+  clearInterval(session.pollHandle);
+  clearInterval(session.timerHandle);
+  updateStatusUI("idle", "Rekaman Selesai");
+  toggleButtons(false, true, true);
+  document.getElementById("btn-start").textContent = "Lanjutkan Sesi";
+
+  // Ambil konten sekali saja pada akhir sesi untuk Layer 2 & 3
+  await fetchDocumentText();
+  
+  // Run Forensic Analysis
+  await runForensicAnalysis();
+  
+  // Switch to forensic tab
+  switchTab("tab-forensic");
 }
 
 function resetSession() {
-  clearInterval(state.pollHandle);
-  clearInterval(state.timerHandle);
-  state = {
+  clearInterval(session.pollHandle);
+  clearInterval(session.timerHandle);
+  
+  session = {
     running: false, paused: false, startedAt: null, elapsedBeforePause: 0,
     lastLen: null, lastChangeAt: null, samples: 0, edits: [], pauses: [],
-    bursts: 0, revisions: 0, pollHandle: null, timerHandle: null, lastCertificate: null
+    bursts: 0, revisions: 0, pollHandle: null, timerHandle: null,
+    textAtStop: "", l1Score: null, l2Result: null, l3Result: null, forensicResult: null, certificate: null
   };
-  setStatus("idle", "Belum merekam");
+  
+  updateStatusUI("idle", "Siap Merekam");
   document.getElementById("timer").textContent = "00:00:00";
-  document.getElementById("btn-start").disabled = false;
-  document.getElementById("btn-start").textContent = "▶ Mulai Rekam";
-  toggleButtons({ start: false, pause: true, stop: true, cert: true, download: true, insert: true });
-  document.getElementById("certificate-preview").classList.add("hidden");
+  document.getElementById("btn-start").textContent = "Mulai Rekam";
+  toggleButtons(false, true, true);
+  
   ["m-samples", "m-edits", "m-pauses", "m-bursts"].forEach(id => (document.getElementById(id).textContent = "0"));
-  document.getElementById("score-value").textContent = "--";
-  document.getElementById("score-label").textContent = "Belum ada data cukup";
-  document.getElementById("score-ring").style.borderColor = "";
-  drawActivity();
+  drawActivityCanvas();
+  
+  resetDashboardUI();
+  switchTab("tab-record");
 }
 
-/* ---------------------------- Metadata polling (NO content read) ---------------------------- */
+/* ============================================================
+   Word API Integrations
+   ============================================================ */
 
-async function pollDocument() {
+async function pollDocumentLength() {
   try {
     await Word.run(async (context) => {
       const body = context.document.body;
       const range = body.getRange();
       range.load("text");
       await context.sync();
-
-      // Kita hanya ambil PANJANG teks (angka), lalu string aslinya
-      // langsung dibuang dari memory — tidak pernah disimpan/direkam.
+      
       const len = range.text.length;
-      range.text = null; // buang referensi konten secepatnya
-
-      handleLengthSample(len);
+      range.text = null; // Buang referensi text segera
+      
+      handleSample(len);
     });
   } catch (err) {
-    console.error("Gagal membaca metadata dokumen:", err);
+    console.error("Poll Error:", err);
   }
 }
 
-function handleLengthSample(len) {
-  const now = Date.now();
-  state.samples += 1;
+async function fetchDocumentText() {
+  try {
+    await Word.run(async (context) => {
+      const body = context.document.body;
+      body.load("text");
+      await context.sync();
+      session.textAtStop = body.text;
+    });
+  } catch (err) {
+    console.error("Fetch Text Error:", err);
+  }
+}
 
-  if (state.lastLen === null) {
-    state.lastLen = len;
-    state.lastChangeAt = now;
+function handleSample(len) {
+  const now = Date.now();
+  session.samples++;
+  
+  if (session.lastLen === null) {
+    session.lastLen = len;
+    session.lastChangeAt = now;
     updateMetricsUI();
     return;
   }
-
-  const delta = len - state.lastLen;
-
+  
+  const delta = len - session.lastLen;
   if (delta !== 0) {
-    const gap = now - state.lastChangeAt;
-    if (gap >= PAUSE_THRESHOLD_MS) {
-      state.pauses.push(gap);
-    }
-    state.edits.push({ t: now, delta });
-    if (Math.abs(delta) > BURST_CHAR_THRESHOLD) state.bursts += 1;
-    if (delta < 0) state.revisions += 1;
-
-    state.lastChangeAt = now;
-    state.lastLen = len;
+    const gap = now - session.lastChangeAt;
+    if (gap >= PAUSE_THRESHOLD_MS) session.pauses.push(gap);
+    
+    session.edits.push({ t: now, delta });
+    if (Math.abs(delta) > BURST_CHAR_THRESHOLD) session.bursts++;
+    if (delta < 0) session.revisions++;
+    
+    session.lastChangeAt = now;
+    session.lastLen = len;
   }
-
+  
   updateMetricsUI();
-  drawActivity();
+  drawActivityCanvas();
 }
 
-/* ---------------------------- UI helpers ---------------------------- */
+/* ============================================================
+   Forensic Processing (All Layers)
+   ============================================================ */
 
-function setStatus(kind, text) {
+async function runForensicAnalysis() {
+  document.getElementById("forensic-verdict").textContent = "Menganalisis...";
+  document.getElementById("forensic-label").textContent = "Sedang menjalankan deteksi multi-layer...";
+  
+  // --- Layer 1: Behavioral ---
+  const l1Metrics = computeBehavioralScore();
+  session.l1Score = l1Metrics.score;
+  updateLayerUI(1, session.l1Score, true);
+
+  // --- Layer 2: Linguistic ---
+  if (config.l2Enabled && session.textAtStop.length > 50) {
+    session.l2Result = analyzeLinguistic(session.textAtStop);
+    updateLayerUI(2, session.l2Result.score, session.l2Result.available, session.l2Result.message);
+    populateLinguisticPanel(session.l2Result);
+  } else {
+    session.l2Result = null;
+    updateLayerUI(2, null, false, !config.l2Enabled ? "Layer 2 dinonaktifkan." : "Teks terlalu pendek.");
+  }
+
+  // --- Layer 3: API ---
+  const apiStatus = getApiStatus();
+  if (config.l3Enabled && apiStatus.consented) {
+    document.getElementById("l3-desc").textContent = `Menghubungi ${apiStatus.provider}...`;
+    session.l3Result = await detectWithApi(session.textAtStop);
+    
+    if (session.l3Result.available) {
+      updateLayerUI(3, session.l3Result.score, true, `Provider: ${apiStatus.provider}`);
+    } else {
+      updateLayerUI(3, null, false, session.l3Result.message);
+    }
+  } else {
+    session.l3Result = null;
+    updateLayerUI(3, null, false, "Tidak diaktifkan / Tanpa consent");
+  }
+
+  // --- Ensemble Scoring ---
+  const forensicScore = computeForensicScore({
+    behavioralScore: session.l1Score,
+    linguisticScore: session.l2Result ? session.l2Result.score : null,
+    apiScore: session.l3Result ? session.l3Result.score : null,
+    behavioralBreakdown: l1Metrics,
+    linguisticBreakdown: session.l2Result,
+    apiBreakdown: session.l3Result
+  });
+
+  session.forensicResult = forensicScore;
+  renderForensicDashboard(forensicScore);
+  
+  document.getElementById("btn-generate-cert").disabled = false;
+}
+
+function computeBehavioralScore() {
+  const durationMs = session.elapsedBeforePause;
+  const totalEdits = session.edits.length;
+  const burstRatio = totalEdits > 0 ? session.bursts / totalEdits : 0;
+  
+  let score = 70;
+  score -= Math.min(45, burstRatio * 100 * 0.6);
+  if (session.revisions > 0) score += Math.min(10, session.revisions * 1.5);
+  if (session.pauses.length > 0) score += 5;
+  if (durationMs > 5 * 60 * 1000 && session.pauses.length === 0) score -= 15;
+  
+  if (totalEdits < 5) score = -1; // Not enough data
+  else score = Math.max(0, Math.min(100, Math.round(score)));
+
+  return { score, durationMs, totalSamples: session.samples, totalEdits, bursts: session.bursts, burstRatio, revisions: session.revisions, pauses: session.pauses.length, pauseMeanMs: session.pauses.length ? session.pauses.reduce((a, b) => a + b, 0) / session.pauses.length : 0 };
+}
+
+/* ============================================================
+   UI Updating
+   ============================================================ */
+
+function updateStatusUI(kind, text) {
   const dot = document.getElementById("status-dot");
-  dot.className = "ca-dot ca-dot--" + kind;
+  dot.className = `ca-dot ca-dot--${kind}`;
   document.getElementById("status-text").textContent = text;
 }
 
-function toggleButtons({ start, pause, stop, cert, download, insert }) {
-  document.getElementById("btn-start").disabled = start;
-  document.getElementById("btn-pause").disabled = pause;
-  document.getElementById("btn-stop").disabled = stop;
-  if (cert !== undefined) document.getElementById("btn-certificate").disabled = cert;
-  if (download !== undefined) document.getElementById("btn-download").disabled = download;
-  if (insert !== undefined) document.getElementById("btn-insert").disabled = insert;
+function toggleButtons(startDisabled, pauseDisabled, stopDisabled) {
+  document.getElementById("btn-start").disabled = startDisabled;
+  document.getElementById("btn-pause").disabled = pauseDisabled;
+  document.getElementById("btn-stop").disabled = stopDisabled;
 }
 
 function updateTimer() {
-  const activeElapsed = state.paused ? 0 : Date.now() - state.startedAt;
-  const totalMs = state.elapsedBeforePause + activeElapsed;
+  const activeElapsed = session.paused ? 0 : Date.now() - session.startedAt;
+  const totalMs = session.elapsedBeforePause + activeElapsed;
   const totalSec = Math.floor(totalMs / 1000);
   const h = String(Math.floor(totalSec / 3600)).padStart(2, "0");
   const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
@@ -192,170 +367,179 @@ function updateTimer() {
 }
 
 function updateMetricsUI() {
-  document.getElementById("m-samples").textContent = state.samples;
-  document.getElementById("m-edits").textContent = state.edits.length;
-  document.getElementById("m-pauses").textContent = state.pauses.length;
-  document.getElementById("m-bursts").textContent = state.bursts;
+  document.getElementById("m-samples").textContent = session.samples;
+  document.getElementById("m-edits").textContent = session.edits.length;
+  document.getElementById("m-pauses").textContent = session.pauses.length;
+  document.getElementById("m-bursts").textContent = session.bursts;
 }
 
-function drawActivity() {
+function drawActivityCanvas() {
   const canvas = document.getElementById("activity-canvas");
   const ctx = canvas.getContext("2d");
   const w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "#fbf9f4";
-  ctx.fillRect(0, 0, w, h);
-
-  if (state.edits.length === 0) return;
-
-  const recent = state.edits.slice(-60);
+  
+  if (session.edits.length === 0) return;
+  const recent = session.edits.slice(-100);
   const maxAbs = Math.max(...recent.map(e => Math.abs(e.delta)), 1);
   const barW = w / recent.length;
 
   recent.forEach((e, i) => {
     const barH = Math.min(h - 4, (Math.abs(e.delta) / maxAbs) * (h - 4));
     const isBurst = Math.abs(e.delta) > BURST_CHAR_THRESHOLD;
-    ctx.fillStyle = isBurst ? "#a5432b" : (e.delta < 0 ? "#b4762b" : "#14213d");
-    const x = i * barW;
-    const y = h - barH - 2;
-    ctx.fillRect(x, y, Math.max(1, barW - 1), barH);
+    ctx.fillStyle = isBurst ? "#ef4444" : (e.delta < 0 ? "#fbbf24" : "#6391ff");
+    ctx.fillRect(i * barW, h - barH - 2, Math.max(1, barW - 1), barH);
   });
 }
 
-/* ---------------------------- Human Rhythm Score ---------------------------- */
-
-function computeAndRenderScore() {
-  const metrics = computeMetrics();
-  renderScore(metrics);
-  return metrics;
-}
-
-function computeMetrics() {
-  const totalEdits = state.edits.length;
-  const durationMs = state.elapsedBeforePause;
-  const burstRatio = totalEdits > 0 ? state.bursts / totalEdits : 0;
-
-  const positiveDeltas = state.edits.filter(e => e.delta > 0).map(e => e.delta);
-  const mean = positiveDeltas.length ? avg(positiveDeltas) : 0;
-  const std = positiveDeltas.length ? stdev(positiveDeltas, mean) : 0;
-  const cv = mean > 0 ? std / mean : 0; // coefficient of variation kecepatan mengetik
-
-  const pauseMean = state.pauses.length ? avg(state.pauses) : 0;
-  const pauseStd = state.pauses.length ? stdev(state.pauses, pauseMean) : 0;
-  const pauseCv = pauseMean > 0 ? pauseStd / pauseMean : 0;
-
-  let score = 70;
-
-  // Lonjakan mendadak (mirip paste/instant-generation) menurunkan skor
-  score -= Math.min(45, burstRatio * 100 * 0.6);
-
-  // Variasi kecepatan mengetik yang wajar (manusia jarang konstan sempurna) menaikkan skor
-  if (positiveDeltas.length >= 4) {
-    if (cv < 0.15) score -= 15; // terlalu seragam, mencurigakan
-    else if (cv > 0.3) score += 10; // variasi alami
+function updateLayerUI(layerNum, score, active, descOverride) {
+  const item = document.getElementById(`layer${layerNum}-item`);
+  const scoreEl = document.getElementById(`l${layerNum}-score`);
+  const dot = document.getElementById(`l${layerNum}-dot`);
+  const desc = document.getElementById(`l${layerNum}-desc`);
+  
+  if (!active || score === null || score < 0) {
+    scoreEl.textContent = "OFF";
+    item.classList.remove("active");
+    dot.className = "ca-layer-dot ca-layer-dot--inactive";
+  } else {
+    scoreEl.textContent = score;
+    item.classList.add("active");
+    dot.className = "ca-layer-dot ca-layer-dot--active";
+    if (score < 50) dot.className = "ca-layer-dot ca-layer-dot--error";
   }
+  
+  if (descOverride && desc) desc.textContent = descOverride;
+}
 
-  // Jeda berpikir yang wajar menaikkan skor; tidak ada jeda sama sekali pada sesi panjang mencurigakan
-  if (durationMs > 5 * 60 * 1000 && state.pauses.length === 0) {
-    score -= 15;
-  } else if (state.pauses.length > 0) {
-    score += Math.min(10, pauseCv * 10);
+function renderForensicDashboard(res) {
+  const scoreEl = document.getElementById("forensic-score");
+  const fillEl = document.getElementById("forensic-ring-fill");
+  const verdictEl = document.getElementById("forensic-verdict");
+  const labelEl = document.getElementById("forensic-label");
+  const agreementBar = document.getElementById("agreement-bar");
+  const tagEl = document.getElementById("confidence-tag");
+  const agreementLabel = document.getElementById("agreement-label");
+  
+  if (res.score < 0) {
+    scoreEl.textContent = "--";
+    fillEl.style.strokeDashoffset = 326.7;
+    verdictEl.textContent = "Tidak cukup data";
+    verdictEl.className = "ca-verdict-badge color-muted";
+    return;
   }
-
-  // Revisi/penghapusan menunjukkan proses berpikir ulang yang manusiawi
-  if (state.revisions > 0) score += Math.min(10, state.revisions * 1.5);
-
-  score = Math.max(0, Math.min(100, Math.round(score)));
-
-  return {
-    durationMs,
-    totalSamples: state.samples,
-    totalEdits,
-    pauses: state.pauses.length,
-    pauseMeanMs: Math.round(pauseMean),
-    bursts: state.bursts,
-    burstRatio: Number(burstRatio.toFixed(3)),
-    revisions: state.revisions,
-    typingSpeedCv: Number(cv.toFixed(3)),
-    score
-  };
+  
+  scoreEl.textContent = res.score;
+  const dashoffset = 326.7 - (326.7 * (res.score / 100));
+  fillEl.style.strokeDashoffset = dashoffset;
+  fillEl.style.stroke = res.interpretation.color;
+  
+  verdictEl.textContent = res.interpretation.label;
+  verdictEl.style.color = res.interpretation.color;
+  verdictEl.style.borderColor = res.interpretation.color;
+  verdictEl.style.background = res.interpretation.bgColor;
+  
+  labelEl.textContent = res.interpretation.description;
+  
+  tagEl.textContent = res.agreement.agreement;
+  agreementLabel.textContent = res.agreement.details;
+  
+  let agreeColor = "var(--text-muted)";
+  let agreePct = "33%";
+  if (res.agreement.agreement === "STRONG") { agreeColor = "var(--green)"; agreePct = "100%"; }
+  else if (res.agreement.agreement === "GOOD") { agreeColor = "var(--green)"; agreePct = "80%"; }
+  else if (res.agreement.agreement === "PARTIAL") { agreeColor = "var(--yellow)"; agreePct = "60%"; }
+  else if (res.agreement.agreement === "CONFLICT") { agreeColor = "var(--red)"; agreePct = "50%"; }
+  
+  agreementBar.style.width = agreePct;
+  agreementBar.style.background = agreeColor;
+  tagEl.style.color = agreeColor;
+  tagEl.style.borderColor = agreeColor;
 }
 
-function renderScore(metrics) {
-  const el = document.getElementById("score-value");
-  const ring = document.getElementById("score-ring");
-  const label = document.getElementById("score-label");
-
-  el.textContent = metrics.score;
-
-  let color = "#a5432b", desc = "Pola kerja tidak biasa — perlu tinjauan manual.";
-  if (metrics.score >= 75) { color = "#2f7a4f"; desc = "Pola kerja konsisten dengan proses manual bertahap."; }
-  else if (metrics.score >= 50) { color = "#b4762b"; desc = "Pola kerja cukup wajar, ada beberapa lonjakan mendadak."; }
-
-  ring.style.borderColor = color;
-  el.style.color = color;
-  label.textContent = desc + " (indikatif, bukan bukti forensik mutlak)";
+function resetDashboardUI() {
+  document.getElementById("forensic-score").textContent = "--";
+  document.getElementById("forensic-ring-fill").style.strokeDashoffset = 326.7;
+  document.getElementById("forensic-ring-fill").style.stroke = "var(--blue)";
+  document.getElementById("forensic-verdict").textContent = "Menunggu Data";
+  document.getElementById("forensic-verdict").style = "";
+  document.getElementById("forensic-label").textContent = "Mulai sesi rekam untuk menghasilkan skor forensik.";
+  document.getElementById("agreement-bar").style.width = "0%";
+  document.getElementById("confidence-tag").textContent = "UNVERIFIED";
+  document.getElementById("confidence-tag").style = "";
+  document.getElementById("agreement-label").textContent = "Data tidak cukup";
+  
+  [1,2,3].forEach(i => updateLayerUI(i, null, false));
+  document.getElementById("linguistic-card").classList.add("hidden");
+  document.getElementById("certificate-preview").classList.add("hidden");
+  
+  document.getElementById("btn-generate-cert").disabled = true;
+  document.getElementById("btn-download").disabled = true;
+  document.getElementById("btn-insert").disabled = true;
 }
 
-function avg(arr) { return arr.reduce((a, b) => a + b, 0) / arr.length; }
-function stdev(arr, mean) {
-  const variance = arr.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / arr.length;
-  return Math.sqrt(variance);
+function populateLinguisticPanel(l2Res) {
+  if (!l2Res || !l2Res.available) return;
+  const card = document.getElementById("linguistic-card");
+  const box = document.getElementById("linguistic-breakdown");
+  box.innerHTML = "";
+  card.classList.remove("hidden");
+  
+  Object.values(l2Res.metrics).forEach(m => {
+    if (m.score < 0) return;
+    const colorClass = m.score >= 75 ? "bg-green" : m.score >= 50 ? "bg-yellow" : "bg-red";
+    box.innerHTML += `
+      <div class="ca-metric-row">
+        <div class="ca-metric-row-label" title="${m.description}">${m.label}</div>
+        <div class="ca-metric-bar"><div class="ca-metric-bar-fill ${colorClass}" style="width: ${m.score}%"></div></div>
+        <div class="ca-metric-row-score">${m.score}</div>
+      </div>
+    `;
+  });
 }
 
-/* ---------------------------- Sertifikat Proses ---------------------------- */
+/* ============================================================
+   Certificate Management
+   ============================================================ */
 
 async function generateCertificate() {
-  const metrics = computeAndRenderScore();
-  const generatedAt = new Date();
-
-  const payload = {
-    dokumen: "Sertifikat Proses — Creative Alibi",
-    dibuat: generatedAt.toISOString(),
-    durasiDetik: Math.round(metrics.durationMs / 1000),
-    totalSampel: metrics.totalSamples,
-    intervalAktif: metrics.totalEdits,
-    jedaTerdeteksi: metrics.pauses,
-    rataRataJedaMs: metrics.pauseMeanMs,
-    lonjakanMendadak: metrics.bursts,
-    rasioLonjakan: metrics.burstRatio,
-    revisi: metrics.revisions,
-    variasiKecepatanMengetik: metrics.typingSpeedCv,
-    humanRhythmScore: metrics.score,
-    catatan: "Metadata numerik saja. Tidak memuat isi/kutipan konten dokumen."
+  if (!session.forensicResult) return;
+  
+  const l1Metrics = computeBehavioralScore();
+  const sessionMeta = {
+    durationSec: Math.round(session.elapsedBeforePause / 1000),
+    totalSamples: session.samples,
+    totalEdits: session.edits.length,
+    pauses: session.pauses.length,
+    pauseMeanMs: l1Metrics.pauseMeanMs,
+    bursts: session.bursts,
+    burstRatio: l1Metrics.burstRatio,
+    revisions: session.revisions
   };
-
-  const hash = await sha256Hex(JSON.stringify(payload));
-  payload.hashIntegritas = hash;
-
-  state.lastCertificate = payload;
-  renderCertificatePreview(payload);
-  toggleButtons({ start: true, pause: true, stop: true, cert: false, download: false, insert: false });
+  
+  const cert = buildForensicCertificate(session.forensicResult, sessionMeta);
+  const hash = await sha256Hex(JSON.stringify(cert));
+  cert.hashIntegritas = hash;
+  session.certificate = cert;
+  
+  renderCertificatePreview(cert);
+  document.getElementById("btn-download").disabled = false;
+  document.getElementById("btn-insert").disabled = false;
 }
 
-function renderCertificatePreview(payload) {
+function renderCertificatePreview(cert) {
   const box = document.getElementById("certificate-preview");
   box.classList.remove("hidden");
   box.innerHTML = `
     <dl>
-      <dt>Dibuat</dt><dd>${new Date(payload.dibuat).toLocaleString("id-ID")}</dd>
-      <dt>Durasi sesi</dt><dd>${formatDuration(payload.durasiDetik)}</dd>
-      <dt>Total sampel</dt><dd>${payload.totalSampel}</dd>
-      <dt>Interval aktif</dt><dd>${payload.intervalAktif}</dd>
-      <dt>Jeda terdeteksi</dt><dd>${payload.jedaTerdeteksi} (rata-rata ${(payload.rataRataJedaMs/1000).toFixed(1)}s)</dd>
-      <dt>Lonjakan mendadak</dt><dd>${payload.lonjakanMendadak} (rasio ${payload.rasioLonjakan})</dd>
-      <dt>Revisi/penghapusan</dt><dd>${payload.revisi}</dd>
-      <dt>Human Rhythm Score</dt><dd>${payload.humanRhythmScore} / 100</dd>
-      <dt>Hash integritas</dt><dd>${payload.hashIntegritas}</dd>
+      <dt>Waktu Dibuat</dt><dd>${new Date(cert.dibuat).toLocaleString("id-ID")}</dd>
+      <dt>Durasi Aktif</dt><dd>${Math.floor(cert.sesi.durasiDetik/60)}m ${cert.sesi.durasiDetik%60}s</dd>
+      <dt>Interval Pengetikan</dt><dd>${cert.sesi.intervalAktif} (${cert.sesi.jedaTerdeteksi} jeda alami)</dd>
+      <dt>Skor Forensik</dt><dd>${cert.forensik.skorForensik}/100 — ${cert.forensik.interpretasi}</dd>
+      <dt>Tingkat Kepercayaan</dt><dd>${cert.forensik.tingkatKepercayaan} (${cert.forensik.layerAktif} Layer Aktif)</dd>
+      <dt>SHA-256 Hash</dt><dd>${cert.hashIntegritas}</dd>
     </dl>
   `;
-}
-
-function formatDuration(totalSec) {
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const s = totalSec % 60;
-  return `${h}j ${m}m ${s}d`;
 }
 
 async function sha256Hex(message) {
@@ -365,45 +549,48 @@ async function sha256Hex(message) {
 }
 
 function downloadCertificate() {
-  if (!state.lastCertificate) return;
-  const blob = new Blob([JSON.stringify(state.lastCertificate, null, 2)], { type: "application/json" });
+  if (!session.certificate) return;
+  const blob = new Blob([JSON.stringify(session.certificate, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `sertifikat-proses-${Date.now()}.json`;
+  a.download = `ca-forensic-cert-${Date.now()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
 
-async function insertCertificateIntoDoc() {
-  if (!state.lastCertificate) return;
-  const p = state.lastCertificate;
-
+async function insertCertificate() {
+  if (!session.certificate) return;
+  const c = session.certificate;
+  
   await Word.run(async (context) => {
     const body = context.document.body;
     body.insertParagraph("", Word.InsertLocation.end);
-    const title = body.insertParagraph("SERTIFIKAT PROSES — CREATIVE ALIBI", Word.InsertLocation.end);
+    const title = body.insertParagraph("SERTIFIKAT FORENSIK — CREATIVE ALIBI v2.0", Word.InsertLocation.end);
     title.font.bold = true;
-    title.font.size = 12;
-
+    title.font.size = 11;
+    
     const lines = [
-      `Dibuat: ${new Date(p.dibuat).toLocaleString("id-ID")}`,
-      `Durasi sesi: ${formatDuration(p.durasiDetik)}`,
-      `Total sampel metadata: ${p.totalSampel}`,
-      `Interval aktif: ${p.intervalAktif}   |   Jeda terdeteksi: ${p.jedaTerdeteksi}`,
-      `Lonjakan mendadak: ${p.lonjakanMendadak} (rasio ${p.rasioLonjakan})   |   Revisi: ${p.revisi}`,
-      `Human Rhythm Score: ${p.humanRhythmScore} / 100`,
-      `Hash integritas (SHA-256): ${p.hashIntegritas}`,
-      `Catatan: metadata numerik saja, tidak memuat kutipan isi dokumen.`
+      `Waktu Dibuat: ${new Date(c.dibuat).toLocaleString("id-ID")}`,
+      `Durasi Aktif: ${Math.floor(c.sesi.durasiDetik/60)}m ${c.sesi.durasiDetik%60}s`,
+      `Skor Forensik Keseluruhan: ${c.forensik.skorForensik}/100`,
+      `Interpretasi: ${c.forensik.interpretasi}`,
+      `Tingkat Kepercayaan: ${c.forensik.tingkatKepercayaan} (${c.forensik.layerAktif} Layer Aktif)`,
+      `Layer 1 (Behavioral): ${c.forensik.layer1_behavioral.aktif ? c.forensik.layer1_behavioral.skor : 'OFF'}`,
+      `Layer 2 (Linguistic): ${c.forensik.layer2_linguistic.aktif ? c.forensik.layer2_linguistic.skor : 'OFF'}`,
+      `Layer 3 (External API): ${c.forensik.layer3_api.aktif ? c.forensik.layer3_api.skor + ' (' + c.forensik.layer3_api.provider + ')' : 'OFF'}`,
+      `SHA-256 Hash Integritas: ${c.hashIntegritas}`,
+      `Catatan: ${c.catatan}`
     ];
+    
     lines.forEach(line => {
       const para = body.insertParagraph(line, Word.InsertLocation.end);
       para.font.size = 9;
       para.font.name = "Courier New";
     });
-
+    
     await context.sync();
   });
 }

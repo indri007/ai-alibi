@@ -1,103 +1,78 @@
-# Creative Alibi — Word Add-in (MVP)
+# Creative Alibi v2.0 — Forensic Proof System
 
-Add-in Microsoft Word yang merekam **metadata proses kerja** (bukan isi tulisan) untuk membantu freelance creator membuktikan bahwa karyanya dibuat secara manual — sesuai hasil design thinking "Tim ALIBI".
+Add-in Microsoft Word yang secara transparan merekam **metadata proses kerja** dan melakukan **analisis multi-layer forensik** untuk membantu freelance creator membuktikan bahwa karyanya dibuat secara manual oleh manusia, bukan hasil *generate* AI.
 
-Ide ini menggabungkan 3 ide dari sesi Ideate kalian:
-- **Ide 1 — Process Recorder**: merekam timeline proses (panjang teks, jeda, revisi) di background.
-- **Ide 2 — Human Rhythm Score**: skor AI berdasarkan pola ritme kerja (kecepatan, jeda, variasi).
-- **Ide 4 — Instant Dispute Kit**: generate laporan/sertifikat siap kirim sebagai bukti sanggahan.
+## Arsitektur Deteksi Multi-Layer
 
-*(Ide 3 — Timestamp Ledger berbasis blockchain — ditandai sebagai roadmap tahap 2, lihat bagian "Pengembangan Lanjutan".)*
+Sistem ini berevolusi dari versi MVP (heuristik ritme kerja tunggal) menjadi sistem **3 Lapis (Multi-Layer)**:
 
-## Kenapa Word Add-in + JavaScript?
+- **Layer 1: Behavioral Engine (Lokal/Offline)**
+  Merekam ritme pengetikan secara realtime di background. Menganalisis metadata kuantitatif seperti: jumlah sampel, durasi pengetikan yang sebenarnya, frekuensi jeda (*pauses*), jumlah pengeditan/penghapusan, dan rasio "lonjakan mendadak" (*copy-paste burst*).
+- **Layer 2: Linguistic Engine (Lokal/Offline)**
+  Menganalisis hukum distribusi kata (Hukum Zipf), rasio *hapax legomena*, kekayaan kosakata (*Type-Token Ratio*), sentimen, dan kompleksitas leksikal. Semuanya diproses 100% secara aman di perangkat pengguna menggunakan ekspresi reguler.
+- **Layer 3: External API / Third-Party Detection (Opsional)**
+  *(Membutuhkan Persetujuan Eksplisit)* Terhubung melalui proxy backend ke detektor AI kelas industri (seperti GPTZero atau ZeroGPT) sebagai verifikator pamungkas (*hard check*). 
 
-- **Office Add-in (Office.js)** adalah cara resmi Microsoft untuk menambah panel/fitur ke Word desktop, Word Online, dan Word di Mac — tanpa perlu install .exe/.dll terpisah, cukup satu file `manifest.xml`.
-- **JavaScript/HTML/CSS** dipakai karena itu satu-satunya bahasa yang didukung penuh oleh Office.js task pane, dan mudah di-deploy lintas platform (Windows, Mac, Web).
-- Build tool: **Webpack** (standar untuk project Office Add-in), tidak perlu framework berat (React dsb) untuk MVP ini — lebih ringan dan gampang di-maintain oleh tim kecil.
+Ketiga skor ini akan dikumpulkan ke dalam **Forensic Engine** untuk menghasilkan satu nilai akhir tertimbang dan sebuah **Sertifikat Integritas Kriptografis**.
 
-## Prinsip Privasi (penting!)
+## Prinsip Privasi (Penting!)
 
-Add-in ini **tidak pernah membaca, menyimpan, atau mengirim isi tulisan Anda**. Yang direkam hanya:
-- Panjang teks dokumen (angka), diukur berkala.
-- Selisih panjang antar pengukuran (delta) → menandai "ada perubahan" atau "revisi/penghapusan".
-- Waktu antar perubahan → menandai "jeda berpikir".
-- Jumlah lonjakan panjang teks yang tiba-tiba besar → indikasi kemungkinan tempel (paste) instan.
-
-String isi dokumen yang diambil untuk mengukur panjang **langsung dibuang dari memory** (`range.text = null`) dan tidak pernah ditulis ke variabel penyimpanan, localStorage, atau dikirim keluar. Lihat fungsi `pollDocument()` di `src/taskpane/taskpane.js`.
-
-## Dokumentasi Lengkap
-
-README ini hanya panduan cepat. Untuk detail arsitektur, skema data, dan **penjelasan lengkap dari mana asal setiap angka di Human Rhythm Score**, lihat:
-- 🇮🇩 [`docs/DOCUMENTATION.id.md`](./docs/DOCUMENTATION.id.md) — Bahasa Indonesia
-- 🇬🇧 [`docs/DOCUMENTATION.en.md`](./docs/DOCUMENTATION.en.md) — English
+Add-in ini menghormati privasi dan kekayaan intelektual (IP) klien/kreator:
+1. **Layer 1 & Layer 2 berjalan sepenuhnya OFFLINE di komputer Anda**. Isi dokumen tidak pernah dikirim ke server luar secara default.
+2. **Hanya Metadata**: Layer 1 hanya merekam perubahan *panjang/ukuran teks* (angka), selisih panjang (delta), dan jeda waktu (waktu). Kami membuang teks tersebut dari memori seketika.
+3. Teks dari dokumen **hanya dikirimkan jika dan hanya jika** Anda menyalakan Layer 3 (API Eksternal) di menu pengaturan, memberikan persetujuan ("Saya setuju"), dan mengklik proses akhir. Jika Layer 3 dinonaktifkan, maka teks Anda tidak pernah meninggalkan komputer Anda.
 
 ## Struktur Project
 
 ```
 creative-alibi-word-addin/
-├── manifest.xml              # deskripsi add-in untuk Word (ikon, izin, lokasi taskpane)
-├── package.json              # dependencies & script build/dev
-├── webpack.config.js         # bundling + dev server HTTPS lokal
-├── docs/
-│   ├── DOCUMENTATION.id.md    # dokumentasi teknis lengkap (Indonesia)
-│   └── DOCUMENTATION.en.md    # dokumentasi teknis lengkap (Inggris)
-├── assets/                   # ikon add-in (16/32/64/80 px)
+├── manifest.xml              # Definisi Office Add-in (ikon, izin, config UI)
+├── package.json              # Dependensi front-end & back-end, scripts build
+├── webpack.config.js         # Config bundling untuk Office Add-in (port 3000)
+├── server/                   # (BARU) Express.js Proxy Backend Server (port 3001)
+│   ├── index.js              # Routing proxy & healthcheck
+│   ├── .env.example          # Template environment variable (API Keys)
+│   └── providers/            # API adapter untuk GPTZero & ZeroGPT
+├── assets/                   # Ikon add-in
 └── src/taskpane/
-    ├── taskpane.html         # UI panel (status, timer, skor, sertifikat)
-    ├── taskpane.css          # tema visual "sertifikat/notaris"
-    └── taskpane.js           # logika rekam metadata, hitung skor, buat sertifikat
+    ├── taskpane.html         # UI Dashboard & Settings (Glassmorphism, Dark Mode)
+    ├── taskpane.css          # Tema visual premium forensic
+    ├── taskpane.js           # Main controller, orchestrator tab & UI
+    ├── forensic-engine.js    # Logika ensemble scoring dari 3 layer
+    ├── linguistic-engine.js  # Detektor Layer 2 (100% JS RegEx)
+    └── api-detector.js       # Klien komunikasi ke backend Layer 3
 ```
 
 ## Cara Menjalankan (Development)
 
-Prasyarat: **Node.js 16+** dan **Microsoft Word desktop** (Windows/Mac) terpasang.
+Prasyarat: **Node.js 16+** dan **Microsoft Word desktop** (Windows/Mac).
 
-```bash
-npm install
-npm start
-```
+1. Install dependensi:
+   ```bash
+   npm install
+   ```
+2. Setup Backend Proxy (Hanya jika ingin menggunakan Layer 3):
+   - Masuk ke folder `server`
+   - Copy `server/.env.example` menjadi `server/.env`
+   - Isi `GPTZERO_API_KEY` atau `ZEROGPT_API_KEY`
+3. Jalankan Environment Lengkap (Taskpane + Backend Server):
+   ```bash
+   npm run dev:all
+   ```
 
-`npm start` akan:
-1. Menjalankan dev server HTTPS lokal di `https://localhost:3000` (sertifikat dev di-generate otomatis oleh `office-addin-dev-certs`).
-2. Membuka Word dan otomatis **sideload** add-in menggunakan `manifest.xml`.
-3. Menampilkan tombol **"Rekam Proses"** di ribbon tab **Home** Word.
+Script di atas akan menjalankan:
+1. **Dev server HTTPS lokal** di `https://localhost:3000` untuk Office Add-in.
+2. **Backend Proxy** di `http://localhost:3001`.
+3. Membuka Word dan otomatis **sideload** add-in menggunakan `manifest.xml`.
 
-Jika `npm start` tidak tersedia di environment kalian, cara manual:
-```bash
-npm run dev-server      # jalankan server saja
-```
-Lalu di Word: **Insert → Add-ins → Upload My Add-in** → pilih `manifest.xml`.
+## Cara Kerja Dashboard (User Flow)
 
-## Cara Pakai di Word
+1. Buka taskpane **Creative Alibi** via pita (ribbon) Word.
+2. Buka icon ⚙️ (Pengaturan) di sudut kanan atas untuk mengaktifkan Layer 2 (Linguistik) atau Layer 3 (API Pihak Ketiga) sebelum mulai.
+3. Di tab **Rekam**, klik **Mulai Rekam**. Kerjakan dokumen Anda seperti biasa. Anda akan melihat metadata Behavioral (Layer 1) berkedip dan mencatat sesi Anda secara live.
+4. Klik **Berhenti** untuk mengakhiri sesi.
+5. Secara otomatis berpindah ke tab **Forensik**. Sistem akan menghitung Forensic Score, Layer 1, Layer 2, dan Layer 3 secara paralel. Sebuah animasi Cincin Forensik (*Hero Ring*) akan menampilkan skor keyakinan akhir (*Confidence Level*).
+6. Buka tab **Sertifikat** dan klik **Buat Sertifikat** untuk meng-generate paket JSON Kriptografis beserta ringkasan. Anda dapat menyisipkan (*Insert*) langsung catatan ringkasan forensik ini di bagian bawah karya Anda.
 
-1. Klik tombol **Rekam Proses** di ribbon → panel terbuka di kanan.
-2. Klik **▶ Mulai Rekam** sebelum mulai menulis/menggambar-teks di dokumen.
-3. Bekerja seperti biasa. Panel menampilkan grafik aktivitas & metrik live.
-4. Setelah selesai, klik **■ Berhenti** → sistem menghitung **Human Rhythm Score**.
-5. Klik **📄 Buat Sertifikat** → muncul ringkasan metadata + hash integritas (SHA-256).
-6. Klik **⬇ Unduh JSON** untuk simpan file bukti, atau **📝 Sisipkan ke Dokumen** untuk menambahkan ringkasan sertifikat langsung di akhir dokumen Word.
-
-## Cara Kerja Human Rhythm Score (v1 — heuristik)
-
-Skor 0–100 dihitung dari kombinasi:
-- **Rasio lonjakan mendadak** (banyak teks masuk sekaligus dalam satu interval) → menurunkan skor.
-- **Variasi kecepatan mengetik** (manusia jarang mengetik dengan kecepatan yang benar-benar konstan) → variasi wajar menaikkan skor, terlalu seragam menurunkan skor.
-- **Keberadaan jeda berpikir** yang wajar dalam sesi panjang → menaikkan skor; tidak ada jeda sama sekali pada sesi panjang → menurunkan skor.
-- **Jumlah revisi/penghapusan** (manusia lazim mengedit ulang) → menaikkan skor.
-
-> ⚠️ **Disclaimer jujur**: ini adalah *heuristik indikatif*, bukan bukti forensik absolut. Untuk MVP hackathon, ini cukup untuk menunjukkan pola kerja yang konsisten dengan proses manual — bukan untuk mengklaim "100% terbukti manusia". Sertifikat sebaiknya diposisikan sebagai *pendukung* argumen, bukan bukti tunggal mutlak.
-
-## Pengembangan Lanjutan (Roadmap)
-
-- **Timestamp Ledger (Ide 3)**: kirim hash sertifikat ke public ledger (mis. OpenTimestamps / blockchain ringan) tiap milestone, supaya tidak bisa dipalsukan belakangan — saat ini hash hanya dihitung lokal.
-- **Video replay ringkas**: rekam replay visual dari data delta (bukan konten) untuk laporan yang lebih meyakinkan klien.
-- **Dukungan Procreate/Photoshop**: versi plugin serupa untuk software desain, karena target user juga ilustrator vector.
-- **Server verifikasi publik**: endpoint sederhana tempat klien/platform bisa memverifikasi hash sertifikat tanpa perlu percaya klaim sepihak dari kreator.
-- **Export PDF bermeterai** untuk sertifikat, bukan hanya JSON.
-
-## Build untuk Distribusi
-
-```bash
-npm run build
-```
-Hasil build ada di folder `dist/`. Untuk distribusi ke tim/klien, `dist/` perlu di-hosting di server HTTPS (atau SharePoint/Azure Static Web Apps), lalu update URL di `manifest.xml` dari `https://localhost:3000` ke domain hosting tersebut sebelum dibagikan sebagai add-in resmi (via AppSource atau sideload manual/centralized deployment Microsoft 365 admin center).
+---
+*Didesain dan dikembangkan sebagai bagian dari MVP ide "Proof of Human Effort" oleh Tim ALIBI.*

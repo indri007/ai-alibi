@@ -4,90 +4,236 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Creative Alibi</title>
-
+  <title>Creative Alibi — Forensic Proof</title>
+  
   <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./taskpane.css" />
 </head>
 <body>
+
+  <!-- ================= HEADER ================= -->
   <header class="ca-header">
-    <img src="./assets/icon-32.png" alt="Creative Alibi" />
-    <div>
-      <h1>Creative Alibi</h1>
-      <p class="ca-subtitle">Bukti proses kerja manusia — bukan tempelan AI.</p>
+    <div class="ca-header-left">
+      <div class="ca-logo-ring">A</div>
+      <div>
+        <h1>Creative Alibi<span class="ca-version">v2.0</span></h1>
+        <div class="ca-subtitle">Forensic Proof System</div>
+      </div>
     </div>
+    <button class="ca-icon-btn" id="btn-settings" title="Pengaturan">⚙</button>
   </header>
 
-  <main id="app-body" class="ca-body">
+  <!-- ================= TABS ================= -->
+  <div class="ca-tabs">
+    <button class="ca-tab active" data-target="tab-record">Rekam</button>
+    <button class="ca-tab" data-target="tab-forensic">Forensik</button>
+    <button class="ca-tab" data-target="tab-cert">Sertifikat</button>
+  </div>
 
-    <section class="ca-card" id="status-card">
-      <div class="ca-status-row">
-        <span id="status-dot" class="ca-dot ca-dot--idle"></span>
-        <span id="status-text">Belum merekam</span>
-      </div>
-      <div class="ca-timer" id="timer">00:00:00</div>
-      <div class="ca-btn-row">
-        <button id="btn-start" class="ca-btn ca-btn--primary">▶ Mulai Rekam</button>
-        <button id="btn-pause" class="ca-btn" disabled>⏸ Jeda</button>
-        <button id="btn-stop" class="ca-btn ca-btn--danger" disabled>■ Berhenti</button>
-      </div>
-    </section>
+  <main class="ca-body">
 
-    <section class="ca-card">
-      <h2>Ringkasan Sesi</h2>
-      <div class="ca-metrics-grid">
-        <div class="ca-metric">
-          <span class="ca-metric-value" id="m-samples">0</span>
-          <span class="ca-metric-label">Titik sampel</span>
+    <!-- TAB 1: RECORDING -->
+    <div id="tab-record" class="ca-tab-content active">
+      <div class="ca-card ca-card--glass">
+        <div class="ca-status-row">
+          <span class="ca-dot ca-dot--idle" id="status-dot"></span>
+          <span id="status-text">Siap merekam</span>
         </div>
-        <div class="ca-metric">
-          <span class="ca-metric-value" id="m-edits">0</span>
-          <span class="ca-metric-label">Interval aktif</span>
-        </div>
-        <div class="ca-metric">
-          <span class="ca-metric-value" id="m-pauses">0</span>
-          <span class="ca-metric-label">Jeda terdeteksi</span>
-        </div>
-        <div class="ca-metric">
-          <span class="ca-metric-value" id="m-bursts">0</span>
-          <span class="ca-metric-label">Lonjakan mendadak</span>
+        <div class="ca-timer" id="timer">00:00:00</div>
+        
+        <div class="ca-btn-row">
+          <button class="ca-btn ca-btn--primary" id="btn-start">Mulai Rekam</button>
+          <button class="ca-btn" id="btn-pause" disabled>Jeda</button>
+          <button class="ca-btn ca-btn--danger" id="btn-stop" disabled>Berhenti</button>
         </div>
       </div>
-      <canvas id="activity-canvas" width="320" height="70"></canvas>
-    </section>
 
-    <section class="ca-card">
-      <h2>Human Rhythm Score</h2>
-      <div class="ca-score-wrap">
-        <div class="ca-score-ring" id="score-ring">
-          <span id="score-value">--</span>
+      <div class="ca-card">
+        <h2>Metadata Behavioral</h2>
+        <div class="ca-metrics-grid">
+          <div class="ca-metric">
+            <span class="ca-metric-value" id="m-samples">0</span>
+            <span class="ca-metric-label">Sampel</span>
+          </div>
+          <div class="ca-metric">
+            <span class="ca-metric-value" id="m-edits">0</span>
+            <span class="ca-metric-label">Edit</span>
+          </div>
+          <div class="ca-metric">
+            <span class="ca-metric-value" id="m-pauses">0</span>
+            <span class="ca-metric-label">Jeda</span>
+          </div>
+          <div class="ca-metric">
+            <span class="ca-metric-value" id="m-bursts">0</span>
+            <span class="ca-metric-label">Lonjakan</span>
+          </div>
         </div>
-        <div id="score-label" class="ca-score-label">Belum ada data cukup</div>
+        <canvas id="activity-canvas"></canvas>
       </div>
-    </section>
+    </div>
 
-    <section class="ca-card">
-      <h2>Sertifikat Proses</h2>
-      <p class="ca-hint">Menghasilkan laporan metadata (bukan isi tulisan) yang bisa dikirim sebagai bukti sanggahan ke klien/platform.</p>
-      <div class="ca-btn-row">
-        <button id="btn-certificate" class="ca-btn ca-btn--secondary" disabled>📄 Buat Sertifikat</button>
-        <button id="btn-download" class="ca-btn" disabled>⬇ Unduh JSON</button>
-        <button id="btn-insert" class="ca-btn" disabled>📝 Sisipkan ke Dokumen</button>
+    <!-- TAB 2: FORENSIC DASHBOARD -->
+    <div id="tab-forensic" class="ca-tab-content">
+      <div class="ca-card ca-card--forensic">
+        <h2>Forensic Confidence</h2>
+        
+        <!-- Big Ring -->
+        <div class="ca-forensic-hero">
+          <div class="ca-forensic-ring">
+            <svg viewBox="0 0 120 120" class="ca-ring-svg">
+              <circle cx="60" cy="60" r="52" class="ca-ring-bg"/>
+              <circle cx="60" cy="60" r="52" class="ca-ring-fill" id="forensic-ring-fill" stroke-dasharray="326.7" stroke-dashoffset="326.7"/>
+            </svg>
+            <div class="ca-ring-center">
+              <span class="ca-ring-score" id="forensic-score">--</span>
+              <span class="ca-ring-max">/ 100</span>
+            </div>
+          </div>
+          
+          <div class="ca-forensic-meta">
+            <div class="ca-verdict-badge" id="forensic-verdict">Menunggu Data</div>
+            <div class="ca-forensic-label" id="forensic-label">Mulai sesi rekam untuk menghasilkan skor forensik.</div>
+            
+            <div class="ca-agreement-bar">
+              <div class="ca-agreement-fill" id="agreement-bar" style="width: 0%"></div>
+            </div>
+            <div class="ca-confidence-row">
+              <span class="ca-confidence-tag" id="confidence-tag">UNVERIFIED</span>
+              <span class="ca-agreement-label" id="agreement-label">Data tidak cukup</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Layer Grid -->
+        <div class="ca-layer-grid" style="margin-top: 16px;">
+          
+          <!-- Layer 1 -->
+          <div class="ca-layer-item" id="layer1-item">
+            <div class="ca-layer-icon color-blue">👁️</div>
+            <div class="ca-layer-info">
+              <div class="ca-layer-name">Layer 1: Behavioral</div>
+              <div class="ca-layer-desc">Analisis ritme, jeda, variasi kecepatan</div>
+            </div>
+            <div class="ca-layer-score" id="l1-score">--</div>
+            <div class="ca-layer-dot ca-layer-dot--inactive" id="l1-dot"></div>
+          </div>
+
+          <!-- Layer 2 -->
+          <div class="ca-layer-item" id="layer2-item">
+            <div class="ca-layer-icon color-green">🔤</div>
+            <div class="ca-layer-info">
+              <div class="ca-layer-name">Layer 2: Linguistic</div>
+              <div class="ca-layer-desc">Struktur & pola kata (100% Lokal)</div>
+            </div>
+            <div class="ca-layer-score" id="l2-score">--</div>
+            <div class="ca-layer-dot ca-layer-dot--inactive" id="l2-dot"></div>
+          </div>
+          
+          <!-- Layer 3 -->
+          <div class="ca-layer-item" id="layer3-item">
+            <div class="ca-layer-icon color-purple">🌐</div>
+            <div class="ca-layer-info">
+              <div class="ca-layer-name">Layer 3: External API</div>
+              <div class="ca-layer-desc" id="l3-desc">Memerlukan consent & setup</div>
+            </div>
+            <div class="ca-layer-score" id="l3-score">--</div>
+            <div class="ca-layer-dot ca-layer-dot--inactive" id="l3-dot"></div>
+          </div>
+
+        </div>
       </div>
-      <div id="certificate-preview" class="ca-certificate hidden"></div>
-    </section>
+      
+      <!-- Linguistic Breakdown (Initially Hidden) -->
+      <div class="ca-card hidden" id="linguistic-card">
+        <h2>Detail Linguistik (L2)</h2>
+        <div class="ca-metrics-breakdown" id="linguistic-breakdown">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
 
-    <section class="ca-card">
-      <h2>Reset</h2>
-      <button id="btn-reset" class="ca-btn ca-btn--ghost">Hapus sesi & mulai ulang</button>
-    </section>
+    <!-- TAB 3: CERTIFICATE -->
+    <div id="tab-cert" class="ca-tab-content">
+      <div class="ca-card">
+        <h2>Sertifikat Proses</h2>
+        <p class="ca-hint">Bukti sanggahan komprehensif yang bisa dilampirkan bersama dokumen Anda.</p>
+        <div class="ca-btn-row">
+          <button class="ca-btn ca-btn--secondary" id="btn-generate-cert" disabled>Buat Sertifikat</button>
+          <button class="ca-btn" id="btn-download" disabled>JSON</button>
+          <button class="ca-btn" id="btn-insert" disabled>Sisipkan</button>
+        </div>
+        <div class="ca-certificate hidden" id="certificate-preview"></div>
+      </div>
 
-    <p class="ca-footnote">
-      Catatan privasi: add-in ini hanya mencatat metadata numerik (panjang teks, waktu, jeda, jumlah perubahan).
-      Isi tulisan Anda tidak pernah disimpan, dikirim, atau ditampilkan.
-    </p>
+      <button class="ca-btn ca-btn--ghost" id="btn-reset" style="width: 100%">
+        Reset Sesi & Mulai Ulang
+      </button>
+    </div>
+
   </main>
 
+  <div class="ca-footnote">
+    <strong>Privasi Terjamin:</strong> Layer 1 & 2 berjalan sepenuhnya offline di perangkat Anda. Konten dokumen tidak pernah dikirim ke server luar kecuali Anda secara eksplisit mengaktifkan Layer 3 (API Eksternal).
+  </div>
+
+  <!-- ================= SETTINGS OVERLAY ================= -->
+  <div class="ca-settings-overlay hidden" id="settings-overlay">
+    <div class="ca-settings-panel">
+      <div class="ca-settings-header">
+        <h2>Pengaturan</h2>
+        <button class="ca-icon-btn" id="btn-close-settings">✖</button>
+      </div>
+      <div class="ca-settings-body">
+        
+        <div class="ca-setting-group">
+          <h3>Layer 2 — Linguistic Engine</h3>
+          <label class="ca-toggle">
+            <input type="checkbox" id="setting-l2" checked />
+            <span class="ca-toggle-slider"></span>
+            <span>Aktifkan analisis lokal (Offline)</span>
+          </label>
+        </div>
+
+        <div class="ca-setting-group">
+          <h3>Layer 3 — External API</h3>
+          <label class="ca-toggle" style="margin-bottom: 12px;">
+            <input type="checkbox" id="setting-l3" />
+            <span class="ca-toggle-slider"></span>
+            <span>Aktifkan deteksi pihak ketiga</span>
+          </label>
+          
+          <div id="l3-config" class="hidden">
+            <div class="ca-select-row">
+              <span style="width: 60px;">Provider:</span>
+              <select class="ca-select" id="setting-l3-provider">
+                <option value="gptzero">GPTZero</option>
+                <option value="zerogpt">ZeroGPT</option>
+              </select>
+            </div>
+            <div style="margin-bottom: 8px;">
+              <span style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Proxy URL</span>
+              <input type="url" class="ca-input" id="setting-l3-proxy" value="http://localhost:3001" placeholder="http://localhost:3001" />
+            </div>
+            
+            <div class="ca-consent-box">
+              <p class="ca-hint ca-hint--warn">⚠️ <strong>Persetujuan Data</strong><br/>Isi tulisan Anda akan dikirim ke API yang dipilih untuk analisis. Proses ini memerlukan koneksi internet.</p>
+              <label class="ca-toggle">
+                <input type="checkbox" id="setting-l3-consent" />
+                <span class="ca-toggle-slider"></span>
+                <span>Saya setuju mengirim teks</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modules -->
   <script type="text/javascript" src="./taskpane.js"></script>
 </body>
 </html>
