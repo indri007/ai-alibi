@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Creative Alibi</title>
+
+  <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <link rel="stylesheet" href="./taskpane.css" />
+</head>
+<body>
+  <header class="ca-header">
+    <img src="./assets/icon-32.png" alt="Creative Alibi" />
+    <div>
+      <h1>Creative Alibi</h1>
+      <p class="ca-subtitle">Bukti proses kerja manusia — bukan tempelan AI.</p>
+    </div>
+  </header>
+
+  <main id="app-body" class="ca-body">
+
+    <section class="ca-card" id="status-card">
+      <div class="ca-status-row">
+        <span id="status-dot" class="ca-dot ca-dot--idle"></span>
+        <span id="status-text">Belum merekam</span>
+      </div>
+      <div class="ca-timer" id="timer">00:00:00</div>
+      <div class="ca-btn-row">
+        <button id="btn-start" class="ca-btn ca-btn--primary">▶ Mulai Rekam</button>
+        <button id="btn-pause" class="ca-btn" disabled>⏸ Jeda</button>
+        <button id="btn-stop" class="ca-btn ca-btn--danger" disabled>■ Berhenti</button>
+      </div>
+    </section>
+
+    <section class="ca-card">
+      <h2>Ringkasan Sesi</h2>
+      <div class="ca-metrics-grid">
+        <div class="ca-metric">
+          <span class="ca-metric-value" id="m-samples">0</span>
+          <span class="ca-metric-label">Titik sampel</span>
+        </div>
+        <div class="ca-metric">
+          <span class="ca-metric-value" id="m-edits">0</span>
+          <span class="ca-metric-label">Interval aktif</span>
+        </div>
+        <div class="ca-metric">
+          <span class="ca-metric-value" id="m-pauses">0</span>
+          <span class="ca-metric-label">Jeda terdeteksi</span>
+        </div>
+        <div class="ca-metric">
+          <span class="ca-metric-value" id="m-bursts">0</span>
+          <span class="ca-metric-label">Lonjakan mendadak</span>
+        </div>
+      </div>
+      <canvas id="activity-canvas" width="320" height="70"></canvas>
+    </section>
+
+    <section class="ca-card">
+      <h2>Human Rhythm Score</h2>
+      <div class="ca-score-wrap">
+        <div class="ca-score-ring" id="score-ring">
+          <span id="score-value">--</span>
+        </div>
+        <div id="score-label" class="ca-score-label">Belum ada data cukup</div>
+      </div>
+    </section>
+
+    <section class="ca-card">
+      <h2>Sertifikat Proses</h2>
+      <p class="ca-hint">Menghasilkan laporan metadata (bukan isi tulisan) yang bisa dikirim sebagai bukti sanggahan ke klien/platform.</p>
+      <div class="ca-btn-row">
+        <button id="btn-certificate" class="ca-btn ca-btn--secondary" disabled>📄 Buat Sertifikat</button>
+        <button id="btn-download" class="ca-btn" disabled>⬇ Unduh JSON</button>
+        <button id="btn-insert" class="ca-btn" disabled>📝 Sisipkan ke Dokumen</button>
+      </div>
+      <div id="certificate-preview" class="ca-certificate hidden"></div>
+    </section>
+
+    <section class="ca-card">
+      <h2>Reset</h2>
+      <button id="btn-reset" class="ca-btn ca-btn--ghost">Hapus sesi & mulai ulang</button>
+    </section>
+
+    <p class="ca-footnote">
+      Catatan privasi: add-in ini hanya mencatat metadata numerik (panjang teks, waktu, jeda, jumlah perubahan).
+      Isi tulisan Anda tidak pernah disimpan, dikirim, atau ditampilkan.
+    </p>
+  </main>
+
+  <script type="text/javascript" src="./taskpane.js"></script>
+</body>
+</html>
