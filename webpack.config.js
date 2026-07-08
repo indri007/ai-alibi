@@ -28,7 +28,8 @@ module.exports = async (env, options) => {
       new CopyWebpackPlugin({
         patterns: [
           { from: "assets/*", to: "assets/[name][ext]" },
-          { from: "manifest.xml", to: "[name][ext]" }
+          { from: "manifest.xml", to: "[name][ext]" },
+          { from: "src/taskpane/taskpane.css", to: "[name][ext]" }
         ]
       })
     ],

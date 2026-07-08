@@ -65,6 +65,50 @@ Sistem ini adalah sebuah *Add-in* untuk **Microsoft Word** yang berfungsi layakn
    npm install
    ```
 
+### Tahap 6: Membangun Versi Produksi (Opsional)
+Jika Anda ingin menghasilkan versi akhir (produksi) dari Add-in:
+```bash
+npm run build
+```
+Ini akan mengkompilasi *source code* (di dalam `src/`) ke dalam folder `dist/` yang siap untuk di-*deploy* ke server internet (misalnya AWS, Vercel, atau server mandiri).
+
+---
+
+### METODE ALTERNATIF: Sideloading Manual via Trust Center
+Jika perintah `npm run dev:all` gagal meluncurkan Word atau Add-in mengalami error karena pembatasan Windows, Anda bisa mendaftarkan aplikasi ini secara manual ke dalam MS Word:
+
+1. **Buat Network Share untuk Folder Proyek:**
+   - Buka **File Explorer**, cari folder `Creative-Alibi`.
+   - Klik Kanan pada folder tersebut -> **Properties** -> Tab **Sharing** -> Klik tombol **Share...**
+   - Pilih nama Anda sendiri (atau *Everyone*), klik **Add**, lalu klik **Share**.
+   - Salin **Network Path** yang muncul (contoh: `\\NAMA-PC\Creative-Alibi`).
+
+2. **Daftarkan ke Trust Center MS Word:**
+   - Buka Microsoft Word (Dokumen Kosong baru).
+   - Klik menu **File** -> **Options** (di pojok kiri bawah) -> **Trust Center** -> **Trust Center Settings...**
+   - Pilih menu **Trusted Add-in Catalogs** di sebelah kiri.
+   - Pada kolom *Catalog Url*, tempelkan (*paste*) **Network Path** dari Langkah 1.
+   - Klik tombol **Add catalog**.
+   - **Centang kotak "Show in Menu"** di sebelah path yang baru ditambahkan.
+   - Klik **OK** dan **OK** lagi. Tutup aplikasi Microsoft Word sepenuhnya.
+
+3. **Jalankan Server Lokal (Buka 2 Terminal):**
+   - Di Terminal pertama, jalankan:
+     ```bash
+     npm run server
+     ```
+   - Buka Terminal baru (di folder yang sama), lalu jalankan:
+     ```bash
+     npm run dev-server
+     ```
+   *(Biarkan kedua terminal ini menyala di latar belakang).*
+
+4. **Masukkan Add-in ke Word:**
+   - Buka kembali Microsoft Word (Dokumen Kosong).
+   - Buka tab **Insert** -> Klik **Get Add-ins** (atau *My Add-ins*).
+   - Pilih tab **SHARED FOLDER** (di bagian atas).
+   - Klik **Creative Alibi**, lalu klik **Add**. Panel akan terbuka dengan sempurna!
+
 ## 🔌 Tahap 3: Menjalankan Aplikasi
 Setelah instalasi selesai, jalankan perintah ini di Terminal yang sama:
 ```bash

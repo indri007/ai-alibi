@@ -13,7 +13,7 @@
   <DisplayName DefaultValue="Creative Alibi" />
   <Description DefaultValue="Rekam metadata proses kerja (bukan konten) untuk membuktikan karya dibuat manusia, dan hasilkan Sertifikat Proses." />
   <IconUrl DefaultValue="https://localhost:3000/assets/icon-32.png" />
-  <HighResIconUrl DefaultValue="https://localhost:3000/assets/icon-80.png" />
+  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-80.png" />
   <SupportUrl DefaultValue="https://localhost:3000" />
 
   <AppDomains>
@@ -46,10 +46,10 @@
                   <bt:Image size="80" resid="Icon.80x80" />
                 </Icon>
                 <Control xsi:type="Button" id="CreativeAlibi.TaskpaneButton">
-                  <Label resid="CreativeAlibi.TaskpaneButton.Label" />
+                  <Label resid="CreativeAlibi.Taskpane.Label" />
                   <Supertip>
-                    <Title resid="CreativeAlibi.TaskpaneButton.Label" />
-                    <Description resid="CreativeAlibi.TaskpaneButton.Tooltip" />
+                    <Title resid="CreativeAlibi.Taskpane.Label" />
+                    <Description resid="CreativeAlibi.Taskpane.Tooltip" />
                   </Supertip>
                   <Icon>
                     <bt:Image size="16" resid="Icon.16x16" />
@@ -80,10 +80,10 @@
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="CreativeAlibi.GroupLabel" DefaultValue="Creative Alibi" />
-        <bt:String id="CreativeAlibi.TaskpaneButton.Label" DefaultValue="Rekam Proses" />
+        <bt:String id="CreativeAlibi.Taskpane.Label" DefaultValue="Rekam Proses" />
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="CreativeAlibi.TaskpaneButton.Tooltip" DefaultValue="Buka panel Creative Alibi untuk mulai merekam metadata proses kerja." />
+        <bt:String id="CreativeAlibi.Taskpane.Tooltip" DefaultValue="Buka panel Creative Alibi untuk mulai merekam metadata proses kerja." />
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>

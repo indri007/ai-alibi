@@ -98,9 +98,7 @@ function applySettings() {
     resetApiDetector();
   }
 
-  // Update UI indicators
-  document.getElementById("badge-l2").className = `ca-layer-badge ${config.l2Enabled ? "ca-layer-badge--active" : ""}`;
-  document.getElementById("badge-l3").className = `ca-layer-badge ${config.l3Enabled && config.l3Consent ? "ca-layer-badge--active" : ""}`;
+  // Update UI indicators (badges removed from HTML)
 }
 
 function switchTab(targetId) {
@@ -213,14 +211,10 @@ async function pollDocumentLength() {
   try {
     await Word.run(async (context) => {
       const body = context.document.body;
-      const range = body.getRange();
-      range.load("text");
+      body.load("text");
       await context.sync();
       
-      const len = range.text.length;
-      range.text = null; // Buang referensi text segera
-      
-      handleSample(len);
+      handleSample(body.text.length);
     });
   } catch (err) {
     console.error("Poll Error:", err);
@@ -517,7 +511,7 @@ async function generateCertificate() {
     revisions: session.revisions
   };
   
-  const cert = buildForensicCertificate(session.forensicResult, sessionMeta);
+  const cert = generateForensicCertificatePayload(session.forensicResult, sessionMeta);
   const hash = await sha256Hex(JSON.stringify(cert));
   cert.hashIntegritas = hash;
   session.certificate = cert;
