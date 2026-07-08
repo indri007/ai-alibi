@@ -9,6 +9,13 @@
  * Setiap provider punya adapter sendiri.
  */
 const PROVIDERS = {
+  WATSONX: {
+    id: "watsonx",
+    name: "IBM watsonx.ai",
+    description: "Powered by IBM Granite foundational models for forensic analysis.",
+    endpoint: "/api/detect/watsonx",
+    requiresKey: true
+  },
   GPTZERO: {
     id: "gptzero",
     name: "GPTZero",
@@ -196,6 +203,8 @@ export async function checkBackendHealth() {
  */
 function normalizeProviderResult(providerId, raw) {
   switch (providerId) {
+    case "watsonx":
+      return normalizeWatsonx(raw);
     case "gptzero":
       return normalizeGPTZero(raw);
     case "zerogpt":
@@ -203,6 +212,17 @@ function normalizeProviderResult(providerId, raw) {
     default:
       return createResult(false, -1, "UNKNOWN_PROVIDER", "Provider tidak dikenal.");
   }
+}
+
+function normalizeWatsonx(raw) {
+  const humanScore = typeof raw.human_score === 'number' ? raw.human_score : -1;
+  return createResult(true, humanScore, "OK", "Analisis IBM watsonx.ai berhasil.", {
+    provider: "IBM watsonx.ai",
+    aiProbability: humanScore >= 0 ? (100 - humanScore) / 100 : -1,
+    humanProbability: humanScore >= 0 ? humanScore / 100 : -1,
+    feedback: raw.feedback || "Tidak ada detail alasan.",
+    raw
+  });
 }
 
 function normalizeGPTZero(raw) {

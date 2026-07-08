@@ -1,99 +1,87 @@
-# Panduan Lengkap Instalasi dan Penggunaan Creative Alibi v2.0
-
-Selamat datang! Panduan ini dibuat khusus agar siapa saja—bahkan yang tidak memiliki latar belakang IT atau pemrograman—dapat menginstal dan menguji sistem **Creative Alibi v2.0** di komputer mereka.
-
-Sistem ini adalah sebuah *Add-in* (aplikasi tambahan) untuk **Microsoft Word** yang berfungsi layaknya "CCTV" yang merekam proses mengetik Anda untuk membuktikan bahwa tulisan tersebut benar-benar diketik oleh manusia, bukan hasil buatan AI (*Artificial Intelligence*).
+# How to Install & Test Creative Alibi v2.0
+# Panduan Lengkap Instalasi dan Penggunaan
 
 ---
 
-## 🛠️ Tahap 1: Persiapan Sistem (Prasyarat)
+# 🇬🇧 English
 
-Sebelum mulai, pastikan komputer Anda memiliki dua hal ini:
-1. **Microsoft Word**: Versi Desktop (Windows atau Mac). Pastikan Word sudah terinstal dan bisa dibuka.
-2. **Node.js**: Ini adalah mesin pembantu agar aplikasi kita bisa berjalan.
-   - Cara cek: Buka aplikasi **Command Prompt** (di Windows) atau **Terminal** (di Mac). Ketik `node -v` lalu tekan Enter. Jika muncul angka versi (misal: `v16.14.0`), berarti Node.js sudah ada.
-   - Jika belum ada, download dan instal dari [nodejs.org](https://nodejs.org/). Pilih versi yang disarankan untuk sebagian besar pengguna (LTS). Cukup klik *Next* sampai selesai saat proses instalasi.
+Welcome! This guide is designed for everyone, including non-technical users, to easily install and test the **Creative Alibi v2.0** system on their local machine.
 
----
+This system is a **Microsoft Word Add-in** that acts as a "Digital CCTV" recording your typing process to mathematically prove that the text is created by a human, not an AI.
 
-## ⚙️ Tahap 2: Langkah Instalasi
+## 🛠️ Step 1: System Requirements
+1. **Microsoft Word**: Desktop version (Windows or Mac).
+2. **Node.js**: The runtime engine to run our local server.
+   - To check, open your Terminal or Command Prompt and type `node -v`. If it shows a version number, you're good.
+   - If not, download and install the LTS version from [nodejs.org](https://nodejs.org/).
 
-Setelah persyaratan di atas terpenuhi, ikuti langkah-langkah berikut:
-
-1. **Siapkan Folder Project**:
-   Pastikan Anda sudah memiliki folder project `Creative-Alibi` di komputer Anda. Buka folder tersebut.
-
-2. **Buka Terminal di Folder Tersebut**:
-   - **Windows**: Buka folder `Creative-Alibi`, klik pada *address bar* (kolom lokasi folder di bagian atas) pada File Explorer, ketik `cmd`, lalu tekan **Enter**. Kotak hitam *Command Prompt* akan terbuka.
-   - **Mac**: Buka folder, klik kanan pada nama folder, lalu pilih *New Terminal at Folder*.
-
-3. **Instal Komponen Aplikasi**:
-   Di dalam kotak hitam Terminal/Command Prompt tersebut, ketikkan perintah berikut dengan sama persis, lalu tekan **Enter**:
+## ⚙️ Step 2: Installation
+1. Open your terminal or command prompt inside the `Creative-Alibi` project folder.
+2. Run the following command to download all necessary engine components:
    ```bash
    npm install
    ```
-   > ⚠️ *Tunggu beberapa saat (bisa 1 hingga 5 menit tergantung internet). Anda akan melihat teks berjalan. Ini adalah proses mengunduh komponen mesin aplikasi. Pastikan penyimpanan disk (hardisk/SSD) Anda tidak penuh.*
 
----
-
-## 🔌 Tahap 3: Menjalankan Aplikasi & Microsoft Word
-
-Setelah proses instalasi (*npm install*) selesai dan berhasil, jalankan perintah ini di Terminal yang sama:
-
+## 🔌 Step 3: Running the Application
+Once the installation finishes, run the following command to start both the Add-in and the Backend Proxy:
 ```bash
 npm run dev:all
 ```
+- Your computer will start the local proxy server (handling API keys securely).
+- Microsoft Word will automatically launch and create a new blank document.
+- *Keep the terminal open in the background!*
 
-**Apa yang terjadi setelah menekan enter?**
-1. Komputer Anda akan menyalakan server lokal secara otomatis.
-2. Sebuah jendela perizinan keamanan (Sertifikat SSL) mungkin akan muncul. Pilih **Yes** atau **Allow** (Izinkan). Ini aman, hanya prosedur standar agar Microsoft Word mengizinkan aplikasi berjalan secara lokal.
-3. **Microsoft Word akan otomatis terbuka** dengan sendirinya, membawa Anda ke dokumen kosong baru.
-   
-*(Biarkan kotak hitam Terminal tetap terbuka di latar belakang. Jangan ditutup selama Anda masih menggunakan aplikasi).*
+## 🧠 Step 4: Configuring IBM watsonx.ai (Optional but Recommended)
+For the most robust forensic validation, you can connect the app to **IBM watsonx.ai**:
+1. Open `server/.env.example` in the project folder and rename it to `.env` (or create a copy).
+2. Insert your IBM Cloud API Key and WatsonX Project ID into `WATSONX_API_KEY` and `WATSONX_PROJECT_ID`.
+3. In Microsoft Word, open the **Creative Alibi** panel from the Home tab.
+4. Click the **Settings ⚙️** icon, activate **Layer 3 (External API)**, and select **IBM watsonx.ai (Granite)** from the dropdown.
 
----
-
-## 🧪 Tahap 4: Cara Menguji Aplikasi (Testing)
-
-Sekarang aplikasi sudah berjalan di dalam Word. Mari kita uji!
-
-### Langkah A: Membuka Panel Aplikasi
-1. Di jendela Microsoft Word, lihat menu pita atas (*Ribbon*) di tab **Home** (Beranda).
-2. Temukan dan klik tombol bernama **Creative Alibi** (atau *Rekam Proses*).
-3. Panel hitam elegan (Dasbor Creative Alibi) akan terbuka di sebelah kanan layar Anda.
-
-### Langkah B: Pengaturan (Opsional)
-1. Di pojok kanan atas panel tersebut, ada tombol ikon roda gigi ⚙️. Klik tombol tersebut.
-2. Anda akan melihat tombol sakelar (*toggle*). Pastikan tombol **Layer 2 (Analisis Lokal Offline)** menyala (berwarna hijau).
-3. Anda bisa menutup kembali menu pengaturan tersebut dengan mengeklik tombol **X**.
-*(Abaikan Layer 3 untuk saat ini jika Anda tidak memiliki kunci API berlangganan).*
-
-### Langkah C: Mulai Rekaman (Uji Manusia)
-1. Di panel tab **Rekam**, klik tombol biru **Mulai Rekam**.
-2. Status akan berubah menjadi *"Sedang Merekam"*. Mulailah mengetik cerita karangan Anda sendiri, sekitar 2 atau 3 paragraf pendek di dokumen Word.
-3. Mengetiklah dengan santai! Berhenti sejenak (*jeda berpikir*), hapus beberapa kata jika salah ketik (*revisi*), lalu lanjut mengetik. 
-4. Lihat ke panel sebelah kanan! Angka-angka pada layar (seperti "Sampel", "Edit", "Jeda") akan bergerak hidup, mencatat aktivitas natural Anda. Ini membuktikan aplikasi merekam ritme Anda.
-
-### Langkah D: Simulasi Kecurangan (Uji *Copy-Paste* AI)
-1. Buka browser internet Anda (Chrome/Safari), cari sembarang teks atau berita panjang dalam bahasa Inggris di internet. Lalu blok teks (*Copy*).
-2. Kembali ke Microsoft Word, klik tombol **Jeda** di panel agar istirahat sebentar, lalu klik **Lanjutkan**.
-3. *Paste* (Tempel) teks panjang yang baru saja Anda *copy* langsung ke dalam Word!
-4. Di panel kanan, Anda akan melihat peringatan aktivitas pada grafik memanjang ke atas secara ekstrem, dan skor metrik "Lonjakan" (*Burst*) bertambah seketika. Sistem mengenali ini sebagai tindakan tidak natural!
-
-### Langkah E: Melihat Skor Forensik
-1. Klik tombol merah **Berhenti** di panel.
-2. Panel akan langsung otomatis bergeser ke tab **Forensik**. 
-3. Anda akan disajikan animasi cincin yang berputar, menghitung **Skor Keyakinan Forensik** (1 sampai 100).
-4. Karena Anda tadi mensimulasikan *Copy-Paste*, skor forensik Anda mungkin akan **jatuh (rendah)**, dan labelnya mungkin menunjukkan indikasi campur tangan AI atau hasil tempelan, membuktikan bahwa detektor berfungsi mengenali anomali!
-
-### Langkah F: Membuat & Menyisipkan Sertifikat
-1. Pindah ke tab **Sertifikat** (tab ketiga di atas panel).
-2. Klik tombol **Buat Sertifikat**.
-3. Rangkuman metadata sesi kerja Anda akan muncul (berisi rincian durasi kerja dan kode Hash SHA-256 yang aman dan mustahil dipalsukan).
-4. Klik tombol **Sisipkan**. Bukti sertifikat tersebut akan tertulis secara otomatis di baris paling bawah dokumen Word Anda!
+## 🧪 Step 5: How to Test (Human vs AI Simulation)
+1. **Human Test**: Click **Start Recording** in the panel. Type a short paragraph naturally, make some typos, pause to think, and delete characters. Watch the metrics panel record your authentic behavior.
+2. **AI Test (Copy-Paste)**: Copy a large chunk of text from the internet. In Word, click Pause, then Resume, and paste the huge text all at once. Watch the "Burst" metric jump to abnormal levels!
+3. **Forensic Analysis**: Click **Stop**. The app will automatically analyze your rhythm and generate a human confidence score. If configured, it will consult IBM watsonx.ai for deep linguistic classification.
+4. **The Certificate**: Go to the Certificate tab, generate a cryptographic certificate containing the offline metadata, and insert it into your Word document to prove your human effort!
 
 ---
 
-🎉 **Selamat!** Anda telah berhasil menjalankan sistem Creative Alibi dari awal hingga mencetak bukti integritas sertifikatnya. 
+# 🇮🇩 Bahasa Indonesia
 
-> *Jika Anda sudah selesai menggunakan aplikasi, Anda bisa menutup jendela Microsoft Word, lalu tutup (Silang) kotak hitam Terminal tadi untuk mematikan server lokal.*
+Selamat datang! Panduan ini dibuat khusus agar siapa saja—bahkan yang tidak memiliki latar belakang IT—dapat menginstal dan menguji sistem **Creative Alibi v2.0** di komputer mereka.
+
+Sistem ini adalah sebuah *Add-in* untuk **Microsoft Word** yang berfungsi layaknya "CCTV digital" yang merekam proses mengetik Anda untuk membuktikan keaslian karya (bukan hasil *Copy-Paste* AI).
+
+## 🛠️ Tahap 1: Persiapan Sistem
+1. **Microsoft Word**: Versi Desktop (Windows atau Mac).
+2. **Node.js**: Mesin pembantu agar aplikasi kita bisa berjalan.
+   - Buka Command Prompt/Terminal, ketik `node -v`. Jika muncul angka versi, berarti sudah ada.
+   - Jika belum, download versi LTS dari [nodejs.org](https://nodejs.org/) dan *install*.
+
+## ⚙️ Tahap 2: Langkah Instalasi
+1. Buka Terminal/Command Prompt tepat di dalam folder proyek `Creative-Alibi` ini.
+2. Ketikkan perintah berikut lalu tekan Enter untuk mengunduh mesin aplikasi:
+   ```bash
+   npm install
+   ```
+
+## 🔌 Tahap 3: Menjalankan Aplikasi
+Setelah instalasi selesai, jalankan perintah ini di Terminal yang sama:
+```bash
+npm run dev:all
+```
+- Server lokal akan menyala secara otomatis.
+- Microsoft Word akan langsung otomatis terbuka membawa Anda ke dokumen kosong baru.
+- *(Biarkan kotak hitam Terminal tetap terbuka di latar belakang).*
+
+## 🧠 Tahap 4: Konfigurasi IBM watsonx.ai (Opsional)
+Untuk tingkat akurasi forensik tertinggi, hubungkan aplikasi dengan model AI IBM:
+1. Buka file `server/.env.example` lalu ubah namanya menjadi `.env`.
+2. Masukkan *API Key* IBM Cloud dan *Project ID* WatsonX Anda di variabel yang tersedia.
+3. Di dalam Microsoft Word, buka panel **Creative Alibi**, klik ikon pengaturan ⚙️, nyalakan **Layer 3 (External API)**, lalu pilih **IBM watsonx.ai (Granite)** dari daftar penyedia.
+
+## 🧪 Tahap 5: Cara Menguji Aplikasi (Simulasi)
+1. **Uji Manusia**: Klik **Mulai Rekam** di panel. Mengetiklah 2 paragraf secara natural. Hapus kata jika salah, diam sebentar untuk berpikir, lalu ketik lagi. Lihat angka-angka pada layar (seperti "Sampel", "Edit") mencatat aktivitas natural Anda.
+2. **Uji Curang AI (Copy-Paste)**: Buka internet, salin teks yang panjang (*Copy*). Kembali ke Word, klik *Jeda*, lalu *Lanjutkan*, dan tempel (*Paste*) teks tersebut ke dalam Word! Grafik akan memerah karena ada lonjakan tidak natural.
+3. **Analisis Forensik**: Klik **Berhenti**. Sistem akan menghitung Skor Keyakinan Forensik. Jika terhubung ke IBM WatsonX, sistem akan mengirim teks untuk dianalisis dan dicocokkan dengan data *offline* Anda.
+4. **Sertifikat**: Pindah ke tab Sertifikat, klik **Buat**, lalu **Sisipkan**. Bukti kerja asli Anda (*Proof of Human Effort*) beserta Hash kriptografis akan tercetak abadi di dalam dokumen Word Anda!

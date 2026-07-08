@@ -15,6 +15,7 @@ app.use(express.json());
 // Provider handlers
 const gptzeroHandler = require('./providers/gptzero');
 const zerogptHandler = require('./providers/zerogpt');
+const watsonxHandler = require('./providers/watsonx');
 
 // Main detection endpoint
 app.post('/api/detect', async (req, res) => {
@@ -34,6 +35,8 @@ app.post('/api/detect', async (req, res) => {
       result = await gptzeroHandler(text);
     } else if (provider === 'zerogpt') {
       result = await zerogptHandler(text);
+    } else if (provider === 'watsonx') {
+      result = await watsonxHandler(text);
     } else {
       return res.status(400).json({ error: `Provider "${provider}" tidak didukung.` });
     }
@@ -52,13 +55,15 @@ app.get('/health', (req, res) => {
     status: 'ok', 
     providers: {
       gptzero: !!process.env.GPTZERO_API_KEY,
-      zerogpt: !!process.env.ZEROGPT_API_KEY
+      zerogpt: !!process.env.ZEROGPT_API_KEY,
+      watsonx: !!process.env.WATSONX_API_KEY
     }
   });
 });
 
 app.listen(PORT, () => {
   console.log(`Creative Alibi Proxy Server running on port ${PORT}`);
+  console.log(`IBM watsonx.ai configured: ${!!process.env.WATSONX_API_KEY}`);
   console.log(`GPTZero API Key configured: ${!!process.env.GPTZERO_API_KEY}`);
   console.log(`ZeroGPT API Key configured: ${!!process.env.ZEROGPT_API_KEY}`);
 });

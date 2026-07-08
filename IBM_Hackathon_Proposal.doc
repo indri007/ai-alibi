@@ -1,0 +1,57 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>IBM AI Builders Challenge Proposal</title>
+<style>
+  body { font-family: "Calibri", "Arial", sans-serif; font-size: 11pt; line-height: 1.5; margin: 40px; }
+  h1 { font-size: 18pt; color: #2e74b5; margin-bottom: 5px; }
+  h2 { font-size: 14pt; color: #2e74b5; margin-top: 20px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+  p, ul, li { margin-bottom: 10px; }
+  strong { color: #333; }
+</style>
+</head>
+<body>
+
+<h1>IBM AI Builders Challenge - July Challenge Proposal</h1>
+
+<p><strong>Theme Selected:</strong> Option A - Reimagine Creative Industries with AI</p>
+<p><strong>Project Title:</strong> Creative Alibi: The "Proof of Human Effort" Protocol</p>
+<p><strong>Team Name:</strong> [Your Team Name]</p>
+<p><strong>Team Members:</strong> [Your Name / Team Members]</p>
+
+<hr style="border: 0; border-top: 1px solid #ccc; margin: 20px 0;">
+
+<h2>1. The Problem: The Authenticity Crisis in the Creative Economy</h2>
+<p>The generative AI boom has created an unintended crisis for the creative industry: <strong>The Death of Authenticity.</strong> Freelance writers, journalists, and designers are increasingly facing false accusations of using AI to generate their work. Traditional AI detectors are fundamentally flawed—they suffer from high false-positive rates (often penalizing non-native English speakers) and require users to upload their sensitive intellectual property (IP) to third-party servers, risking data leaks. Creators are losing clients, academic credibility, and income simply because they cannot conclusively <em>prove</em> that they did the work manually.</p>
+
+<h2>2. Target Users</h2>
+<ul>
+  <li><strong>Freelance Creators & Copywriters:</strong> Who need a verifiable way to prove the authenticity of their work to skeptical clients.</li>
+  <li><strong>Academics & Students:</strong> Who must defend the originality of their thesis or essays against faulty institutional AI scanners.</li>
+  <li><strong>Publishers & Editors:</strong> Who need a transparent, privacy-first way to verify the human origin of submitted manuscripts without reading the raw content.</li>
+</ul>
+
+<h2>3. The Proposed AI Solution: Creative Alibi v2.0</h2>
+<p>While other tools focus on <em>generating</em> content with AI, <strong>Creative Alibi</strong> uses AI and forensic data to <em>protect</em> human effort. It is a Microsoft Word Add-in that acts as a secure, background "Digital Notary."</p>
+
+<p>Instead of analyzing the final text (which can easily be spoofed), Creative Alibi analyzes the <strong>process of creation</strong> through a Multi-Layer Forensic Architecture:</p>
+<ul>
+  <li><strong>Layer 1: Behavioral Engine (100% Offline):</strong> Silently monitors the natural human rhythm—tracking typing bursts, natural pause intervals, edit frequencies, and total duration. It flags unnatural behaviors like massive copy-pasting (bursts).</li>
+  <li><strong>Layer 2: Linguistic Engine (100% Offline):</strong> Analyzes the text against Zipf's Law, Hapax Legomena, and Type-Token Ratios to measure human lexical diversity.</li>
+  <li><strong>Layer 3: External Verification Proxy (Consent-Based):</strong> Connects to industry-leading enterprise AI models—specifically <strong>IBM watsonx.ai (Granite Foundation Models)</strong>—via a secure, self-hosted Express.js backend. The creator's intellectual property is <em>never</em> sent without explicit user consent.</li>
+</ul>
+
+<p>At the end of a session, our <strong>Forensic Ensemble Engine</strong> calculates a weighted confidence score. It then generates a cryptographically signed JSON certificate (via SHA-256 hash) that creators can append to their documents as irrefutable "Proof of Human Effort."</p>
+
+<h2>4. Expected Impact</h2>
+<p>Creative Alibi shifts the paradigm from "detecting AI" to <strong>"verifying humanity."</strong></p>
+<ol>
+  <li><strong>Restores Trust:</strong> Allows clients and creators to work together in a zero-trust AI landscape by providing transparent, mathematical proof of labor.</li>
+  <li><strong>Protects Intellectual Property:</strong> By relying heavily on offline metadata (Layer 1 & 2), creators don't have to surrender their unreleased manuscripts to web-based AI detectors.</li>
+  <li><strong>Future of Work Standard:</strong> Establishes a new standard for freelance contracts, where submitting a "Creative Alibi Certificate" becomes as common as submitting an invoice, safeguarding the economic value of genuine human creativity.</li>
+</ol>
+
+</body>
+</html>
