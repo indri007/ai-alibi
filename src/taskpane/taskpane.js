@@ -588,3 +588,31 @@ async function insertCertificate() {
     await context.sync();
   });
 }
+
+// ================================================================
+// SUPPORT CHAT TOGGLE
+// ================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  const chatBtn = document.getElementById('chat-btn');
+  const chatModal = document.getElementById('chat-modal');
+  const chatFrame = document.getElementById('chat-frame');
+  let chatOpen = false;
+
+  if (!chatBtn || !chatModal || !chatFrame) return;
+
+  // Get proxy URL from settings or default
+  const proxyInput = document.getElementById('setting-l3-proxy');
+  const proxyUrl = proxyInput ? proxyInput.value : 'http://localhost:3001';
+
+  chatBtn.addEventListener('click', () => {
+    chatOpen = !chatOpen;
+    if (chatOpen) {
+      chatFrame.src = proxyUrl + '/support.html';
+      chatModal.classList.remove('hidden');
+      chatBtn.textContent = '✖';
+    } else {
+      chatModal.classList.add('hidden');
+      chatBtn.textContent = '💬';
+    }
+  });
+});

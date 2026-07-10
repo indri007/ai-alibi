@@ -66,6 +66,10 @@ function apiKeyAuth(req, res, next) {
   next();
 }
 
+// ── Static Files ────────────────────────────────────────
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'public')));
+
 // ── Provider handlers ───────────────────────────────────
 const gptzeroHandler = require('./providers/gptzero');
 const zerogptHandler = require('./providers/zerogpt');
@@ -102,6 +106,29 @@ app.post('/api/detect', apiKeyAuth, async (req, res) => {
   } catch (error) {
     console.error(`[Error] ${provider}:`, error.message);
     return res.status(500).json({ error: 'Gagal menghubungi layanan API deteksi pihak ketiga.', details: error.message });
+  }
+});
+
+// ── Support Chat ─────────────────────────────────────────
+const supportChat = require('./support');
+
+app.post('/api/support', async (req, res) => {
+  const { message, history } = req.body;
+
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ error: 'Parameter "message" wajib dan harus berupa string.' });
+  }
+
+  if (message.trim().length < 2) {
+    return res.status(400).json({ error: 'Pesan terlalu pendek.' });
+  }
+
+  try {
+    const result = await supportChat.chat(message, history || []);
+    return res.json({ success: true, reply: result.reply });
+  } catch (error) {
+    console.error('[Support] Error:', error.message);
+    return res.status(500).json({ error: 'Gagal memproses chat. Coba lagi.', details: error.message });
   }
 });
 
