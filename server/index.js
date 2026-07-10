@@ -47,7 +47,8 @@ app.get('/health', (req, res) => {
       gptzero: !!process.env.GPTZERO_API_KEY,
       zerogpt: !!process.env.ZEROGPT_API_KEY,
       watsonx: !!process.env.WATSONX_API_KEY,
-      desklib: true
+      desklib: true,
+      hix: !!process.env.HIX_EMAIL
     }
   });
 });
@@ -75,6 +76,7 @@ const gptzeroHandler = require('./providers/gptzero');
 const zerogptHandler = require('./providers/zerogpt');
 const watsonxHandler = require('./providers/watsonx');
 const desklibHandler = require('./providers/desklib');
+const hixHandler = require('./providers/hix');
 
 // ── Main detection endpoint ─────────────────────────────
 app.post('/api/detect', apiKeyAuth, async (req, res) => {
@@ -98,6 +100,8 @@ app.post('/api/detect', apiKeyAuth, async (req, res) => {
       result = await watsonxHandler(text);
     } else if (provider === 'desklib') {
       result = await desklibHandler(text);
+    } else if (provider === 'hix') {
+      result = await hixHandler(text);
     } else {
       return res.status(400).json({ error: `Provider "${provider}" tidak didukung.` });
     }

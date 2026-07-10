@@ -14,6 +14,9 @@ RUN npm install --omit=dev
 # Copy server files
 COPY server/ server/
 
+# Copy built frontend to public (icons, taskpane)
+COPY dist/ server/public/
+
 # Expose port
 EXPOSE 3001
 
