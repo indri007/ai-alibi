@@ -8,7 +8,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middlewares
+// ── CORS ────────────────────────────────────────────────
 const CORS_ORIGINS = process.env.CORS_ORIGINS 
   ? process.env.CORS_ORIGINS.split(',').map(s => s.trim())
   : ['http://localhost:3000', 'https://localhost:3000', 'https://appsforoffice.microsoft.com'];
@@ -16,15 +16,33 @@ const CORS_ORIGINS = process.env.CORS_ORIGINS
 app.use(cors({
   origin: CORS_ORIGINS,
   methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key']
 }));
 app.use(express.json());
 
-// Healthcheck (tanpa auth — biar frontend/Word bisa cek koneksi)
+// ── API Key Auth ────────────────────────────────────────
+const API_KEY = process.env.API_KEY || '';
+const apiKeyEnabled = !!API_KEY;
+
+// ── Rate Limiting ───────────────────────────────────────
+const rateLimit = require('express-rate-limit');
+
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 menit
+  max: parseInt(process.env.RATE_LIMIT_MAX || '20', 10),
+  message: { error: 'Terlalu banyak request. Coba lagi dalam 1 menit.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply rate limiter to /api/ routes
+app.use('/api/', limiter);
+
+// ── Healthcheck (tanpa auth) ────────────────────────────
 app.get('/health', (req, res) => {
-  res.json({ 
+  res.json({
     status: 'ok',
-    auth: !!process.env.PROXY_USERNAME,
+    auth: apiKeyEnabled,
     providers: {
       gptzero: !!process.env.GPTZERO_API_KEY,
       zerogpt: !!process.env.ZEROGPT_API_KEY,
@@ -34,40 +52,28 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ================= Basic Auth Middleware =================
-const PROXY_USERNAME = process.env.PROXY_USERNAME;
-const PROXY_PASSWORD = process.env.PROXY_PASSWORD;
-const authEnabled = !!(PROXY_USERNAME && PROXY_PASSWORD);
+// ── API Key Middleware ───────────────────────────────────
+function apiKeyAuth(req, res, next) {
+  if (!apiKeyEnabled) return next(); // Skip jika API Key tidak diset
 
-if (authEnabled) {
-  app.use((req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Basic ')) {
-      res.set('WWW-Authenticate', 'Basic realm="Creative Alibi Proxy"');
-      return res.status(401).json({ error: 'Harap login terlebih dahulu.' });
-    }
-
-    const base64 = authHeader.split(' ')[1];
-    const decoded = Buffer.from(base64, 'base64').toString('utf-8');
-    const [username, password] = decoded.split(':');
-
-    if (username !== PROXY_USERNAME || password !== PROXY_PASSWORD) {
-      res.set('WWW-Authenticate', 'Basic realm="Creative Alibi Proxy"');
-      return res.status(401).json({ error: 'Username atau password salah.' });
-    }
-
-    next();
-  });
+  const key = req.headers['x-api-key'];
+  if (!key) {
+    return res.status(401).json({ error: 'API Key diperlukan. Kirim header: X-API-Key' });
+  }
+  if (key !== API_KEY) {
+    return res.status(403).json({ error: 'API Key tidak valid.' });
+  }
+  next();
 }
 
-// Provider handlers
+// ── Provider handlers ───────────────────────────────────
 const gptzeroHandler = require('./providers/gptzero');
 const zerogptHandler = require('./providers/zerogpt');
 const watsonxHandler = require('./providers/watsonx');
 const desklibHandler = require('./providers/desklib');
 
-// Main detection endpoint
-app.post('/api/detect', async (req, res) => {
+// ── Main detection endpoint ─────────────────────────────
+app.post('/api/detect', apiKeyAuth, async (req, res) => {
   const { provider, text } = req.body;
 
   if (!text || typeof text !== 'string') {
@@ -95,18 +101,14 @@ app.post('/api/detect', async (req, res) => {
     return res.json(result);
   } catch (error) {
     console.error(`[Error] ${provider}:`, error.message);
-    // Send safe error message to client
     return res.status(500).json({ error: 'Gagal menghubungi layanan API deteksi pihak ketiga.', details: error.message });
   }
 });
 
-
-
+// ── Startup ─────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`Creative Alibi Proxy Server running on port ${PORT}`);
-  console.log(`Basic Auth: ${authEnabled ? '✅ AKTIF (username: ' + PROXY_USERNAME + ')' : '❌ Nonaktif (kosongkan untuk local dev)'}`);
-  console.log(`IBM watsonx.ai configured: ${!!process.env.WATSONX_API_KEY}`);
-  console.log(`GPTZero API Key configured: ${!!process.env.GPTZERO_API_KEY}`);
-  console.log(`ZeroGPT API Key configured: ${!!process.env.ZEROGPT_API_KEY}`);
-  console.log(`Desklib local detector: ${!!process.env.DESKLIB_URL ? 'Custom URL: ' + process.env.DESKLIB_URL : 'http://127.0.0.1:5000 (default)'}`);
+  console.log(`API Key Auth: ${apiKeyEnabled ? '✅ AKTIF' : '❌ Nonaktif (set API_KEY di .env untuk mengaktifkan)'}`);
+  console.log(`Rate Limit: ${process.env.RATE_LIMIT_MAX || '20'} req/min per IP`);
+  console.log(`Providers: desklib(local) gptzero(${!!process.env.GPTZERO_API_KEY}) zerogpt(${!!process.env.ZEROGPT_API_KEY}) watsonx(${!!process.env.WATSONX_API_KEY})`);
 });
