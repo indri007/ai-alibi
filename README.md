@@ -41,3 +41,16 @@ Silakan baca panduan lengkap untuk pemula di file `HOW TO INSTALL.md`.
 npm install
 npm run dev:all
 ```
+
+## 🚀 Cloud Run Deployment
+
+| Service | URL |
+|---------|-----|
+| **creative-alibi** | https://creative-alibi-994794168239.asia-southeast2.run.app |
+| **desklib-detector** | https://desklib-detector-994794168239.asia-southeast2.run.app |
+
+### Usage
+- **Word Add-in API**: `https://creative-alibi-994794168239.asia-southeast2.run.app`
+- **Text Detection**: `POST /api/detect`
+- **Support Chat**: `POST /api/support`
+- **Health Check**: `GET /health`
