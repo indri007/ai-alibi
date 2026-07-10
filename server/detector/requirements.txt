@@ -1,0 +1,7 @@
+# Desklib AI Text Detector - Python dependencies
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+torch>=2.1.0
+transformers>=4.44,<5
+sentencepiece>=0.2.0
+pydantic>=2.0.0

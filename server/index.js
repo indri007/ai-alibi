@@ -9,8 +9,12 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middlewares
+const CORS_ORIGINS = process.env.CORS_ORIGINS 
+  ? process.env.CORS_ORIGINS.split(',').map(s => s.trim())
+  : ['http://localhost:3000', 'https://localhost:3000', 'https://appsforoffice.microsoft.com'];
+
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://localhost:3000', 'https://appsforoffice.microsoft.com'],
+  origin: CORS_ORIGINS,
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -24,7 +28,8 @@ app.get('/health', (req, res) => {
     providers: {
       gptzero: !!process.env.GPTZERO_API_KEY,
       zerogpt: !!process.env.ZEROGPT_API_KEY,
-      watsonx: !!process.env.WATSONX_API_KEY
+      watsonx: !!process.env.WATSONX_API_KEY,
+      desklib: true
     }
   });
 });
@@ -59,6 +64,7 @@ if (authEnabled) {
 const gptzeroHandler = require('./providers/gptzero');
 const zerogptHandler = require('./providers/zerogpt');
 const watsonxHandler = require('./providers/watsonx');
+const desklibHandler = require('./providers/desklib');
 
 // Main detection endpoint
 app.post('/api/detect', async (req, res) => {
@@ -80,6 +86,8 @@ app.post('/api/detect', async (req, res) => {
       result = await zerogptHandler(text);
     } else if (provider === 'watsonx') {
       result = await watsonxHandler(text);
+    } else if (provider === 'desklib') {
+      result = await desklibHandler(text);
     } else {
       return res.status(400).json({ error: `Provider "${provider}" tidak didukung.` });
     }
@@ -100,4 +108,5 @@ app.listen(PORT, () => {
   console.log(`IBM watsonx.ai configured: ${!!process.env.WATSONX_API_KEY}`);
   console.log(`GPTZero API Key configured: ${!!process.env.GPTZERO_API_KEY}`);
   console.log(`ZeroGPT API Key configured: ${!!process.env.ZEROGPT_API_KEY}`);
+  console.log(`Desklib local detector: ${!!process.env.DESKLIB_URL ? 'Custom URL: ' + process.env.DESKLIB_URL : 'http://127.0.0.1:5000 (default)'}`);
 });
