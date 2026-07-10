@@ -9,8 +9,51 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://localhost:3000', 'https://appsforoffice.microsoft.com'],
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+
+// Healthcheck (tanpa auth — biar frontend/Word bisa cek koneksi)
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    auth: !!process.env.PROXY_USERNAME,
+    providers: {
+      gptzero: !!process.env.GPTZERO_API_KEY,
+      zerogpt: !!process.env.ZEROGPT_API_KEY,
+      watsonx: !!process.env.WATSONX_API_KEY
+    }
+  });
+});
+
+// ================= Basic Auth Middleware =================
+const PROXY_USERNAME = process.env.PROXY_USERNAME;
+const PROXY_PASSWORD = process.env.PROXY_PASSWORD;
+const authEnabled = !!(PROXY_USERNAME && PROXY_PASSWORD);
+
+if (authEnabled) {
+  app.use((req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Basic ')) {
+      res.set('WWW-Authenticate', 'Basic realm="Creative Alibi Proxy"');
+      return res.status(401).json({ error: 'Harap login terlebih dahulu.' });
+    }
+
+    const base64 = authHeader.split(' ')[1];
+    const decoded = Buffer.from(base64, 'base64').toString('utf-8');
+    const [username, password] = decoded.split(':');
+
+    if (username !== PROXY_USERNAME || password !== PROXY_PASSWORD) {
+      res.set('WWW-Authenticate', 'Basic realm="Creative Alibi Proxy"');
+      return res.status(401).json({ error: 'Username atau password salah.' });
+    }
+
+    next();
+  });
+}
 
 // Provider handlers
 const gptzeroHandler = require('./providers/gptzero');
@@ -49,20 +92,11 @@ app.post('/api/detect', async (req, res) => {
   }
 });
 
-// Healthcheck
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    providers: {
-      gptzero: !!process.env.GPTZERO_API_KEY,
-      zerogpt: !!process.env.ZEROGPT_API_KEY,
-      watsonx: !!process.env.WATSONX_API_KEY
-    }
-  });
-});
+
 
 app.listen(PORT, () => {
   console.log(`Creative Alibi Proxy Server running on port ${PORT}`);
+  console.log(`Basic Auth: ${authEnabled ? '✅ AKTIF (username: ' + PROXY_USERNAME + ')' : '❌ Nonaktif (kosongkan untuk local dev)'}`);
   console.log(`IBM watsonx.ai configured: ${!!process.env.WATSONX_API_KEY}`);
   console.log(`GPTZero API Key configured: ${!!process.env.GPTZERO_API_KEY}`);
   console.log(`ZeroGPT API Key configured: ${!!process.env.ZEROGPT_API_KEY}`);

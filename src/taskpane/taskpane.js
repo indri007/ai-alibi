@@ -304,8 +304,8 @@ async function runForensicAnalysis() {
   // --- Ensemble Scoring ---
   const forensicScore = computeForensicScore({
     behavioralScore: session.l1Score,
-    linguisticScore: session.l2Result ? session.l2Result.score : null,
-    apiScore: session.l3Result ? session.l3Result.score : null,
+    linguisticResult: session.l2Result,
+    apiResult: session.l3Result,
     behavioralBreakdown: l1Metrics,
     linguisticBreakdown: session.l2Result,
     apiBreakdown: session.l3Result
