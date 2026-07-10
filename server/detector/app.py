@@ -25,7 +25,7 @@ logger = logging.getLogger("desklib-api")
 # ── Model Path ───────────────────────────────────────────
 DEFAULT_MODEL_PATH = os.environ.get(
     "DESKLIB_MODEL_PATH",
-    str(Path(__file__).resolve().parent.parent.parent.parent / "ai-text-detector-v1.01"),
+    str(Path(__file__).resolve().parent.parent / "ai-text-detector-v1.01"),
 )
 
 # ── Lifespan ────────────────────────────────────────────

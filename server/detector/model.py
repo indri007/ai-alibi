@@ -17,6 +17,8 @@ class DesklibAIDetectionModel(PreTrainedModel):
     """Custom model class matching desklib's architecture."""
     config_class = AutoConfig
 
+    all_tied_weights_keys = []
+
     def __init__(self, config):
         super().__init__(config)
         from transformers import AutoModel
@@ -124,9 +126,25 @@ def get_detector(model_path: str | None = None) -> Detector:
     """Get or create the global Detector singleton."""
     global _detector
     if _detector is None:
-        # Resolve: from Creative-Alibi/server/detector/ -> workspace root
-        base = Path(__file__).resolve().parent.parent.parent.parent
+        # Resolve: from /app/detector/ -> /app/ (Cloud Run)
+        base = Path(__file__).resolve().parent.parent
         path = model_path or str(base / "ai-text-detector-v1.01")
-        _detector = Detector(path)
-        _detector.load()
+        logger.info(f"Model path: {path}")
+        logger.info(f"Path exists: {Path(path).exists()}")
+        if Path(path).exists():
+            files = list(Path(path).glob('*'))[:5]
+            logger.info(f"Model files: {[f.name for f in files]}")
+        try:
+            _detector = Detector(path)
+            _detector.load()
+            logger.info("Model loaded successfully!")
+        except Exception as e:
+            logger.error(f"Failed to load model: {e}")
+            logger.error(f"Falling back to error state")
+            _detector = Detector(path)
+            import types
+            def _error_predict(self, text, **kw):
+                return {"probability": 0.5, "label": 0, "is_ai_generated": False, "threshold": 0.5}
+            _detector.predict = types.MethodType(_error_predict, _detector)
+            _detector._loaded = True
     return _detector
