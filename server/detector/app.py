@@ -7,6 +7,8 @@ import os
 import logging
 from pathlib import Path
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -20,10 +22,30 @@ logging.basicConfig(
 )
 logger = logging.getLogger("desklib-api")
 
+# ── Model Path ───────────────────────────────────────────
+DEFAULT_MODEL_PATH = os.environ.get(
+    "DESKLIB_MODEL_PATH",
+    str(Path(__file__).resolve().parent.parent.parent.parent / "ai-text-detector-v1.01"),
+)
+
+# ── Lifespan ────────────────────────────────────────────
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Load model once at startup."""
+    logger.info(f"Model path: {DEFAULT_MODEL_PATH}")
+    import asyncio
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, lambda: get_detector(DEFAULT_MODEL_PATH))
+    yield
+
+
 # ── App ──────────────────────────────────────────────────
 app = FastAPI(
     title="Desklib AI Text Detector",
     version="1.0.1",
+    lifespan=lifespan,
     description="RAID #1 AI-generated text detection (DeBERTa-v3-large)",
 )
 
@@ -51,22 +73,7 @@ class DetectResponse(BaseModel):
     text_length: int
 
 
-# ── Startup ──────────────────────────────────────────────
 
-
-@app.on_event("startup")
-async def startup():
-    """Load model once at startup."""
-    model_path = os.environ.get(
-        "DESKLIB_MODEL_PATH",
-        str(Path(__file__).resolve().parent.parent.parent.parent / "ai-text-detector-v1.01"),
-    )
-    logger.info(f"Model path: {model_path}")
-
-    # Load in a thread to avoid blocking the event loop
-    import asyncio
-    loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, lambda: get_detector(model_path))
 
 
 # ── Endpoints ────────────────────────────────────────────
