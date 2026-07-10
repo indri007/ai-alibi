@@ -1,0 +1,13 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/heaven-493814/desklib-detector:latest'
+      - '-f'
+      - 'Dockerfile.desklib'
+      - '.'
+    timeout: 1200s  # 20 min timeout for build
+timeout: 1200s
+images:
+  - 'gcr.io/heaven-493814/desklib-detector:latest'

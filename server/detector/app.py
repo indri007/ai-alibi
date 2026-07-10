@@ -33,11 +33,8 @@ DEFAULT_MODEL_PATH = os.environ.get(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Load model once at startup."""
-    logger.info(f"Model path: {DEFAULT_MODEL_PATH}")
-    import asyncio
-    loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, lambda: get_detector(DEFAULT_MODEL_PATH))
+    """Start server immediately, model loads lazily on first request."""
+    logger.info(f"Desklib Detector starting. Model path: {DEFAULT_MODEL_PATH}")
     yield
 
 
@@ -89,7 +86,7 @@ async def detect(req: DetectRequest):
     """Detect whether text is AI-generated."""
     import asyncio
     loop = asyncio.get_event_loop()
-    detector = get_detector()
+    detector = get_detector(DEFAULT_MODEL_PATH)
 
     try:
         result = await loop.run_in_executor(
