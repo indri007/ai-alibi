@@ -24,8 +24,8 @@ RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends \
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir \
     fastapi \
-    uvicorn[standard] \
-    transformers>=4.44,<5 \
+    'uvicorn[standard]' \
+    'transformers>=4.44,<5' \
     sentencepiece \
     huggingface_hub \
     pydantic
@@ -51,16 +51,10 @@ WORKDIR /app/detector
 
 EXPOSE 5000
 
-# Health check: verify model is actually loaded
+# Health check: verify model is actually loaded (uses healthcheck.py script)
+COPY server/detector/healthcheck.py ./
 HEALTHCHECK --interval=60s --timeout=15s --start-period=180s --retries=3 \
-  CMD python -c "
-import urllib.request, json
-resp = urllib.request.urlopen('http://localhost:5000/health', timeout=10)
-data = json.loads(resp.read().decode())
-assert data.get('status') == 'ok', f'Status: {data.get(\"status\")}'
-assert data.get('model_loaded'), 'Model not loaded'
-print('HEALTHY: model loaded on', data.get('device'))
-"
+  CMD python healthcheck.py
 
 # Start FastAPI with optimized workers
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000", "--log-level", "info"]

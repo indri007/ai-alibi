@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Download desklib model from Hugging Face Hub.
+"""
+Download desklib model from Hugging Face Hub.
+Saves to parent of server/detector/ (resolved automatically).
 
-Resolves model path relative to the script location, so it works
-both in Docker (/app/ai-text-detector-v1.01) and local dev.
+In Docker: /app/ai-text-detector-v1.01
+In local:  /path/to/repo/ai-text-detector-v1.01
 """
 
 import os
@@ -10,21 +12,14 @@ import sys
 from pathlib import Path
 from huggingface_hub import snapshot_download
 
-# Resolve model path: parent of the directory containing this script
-SCRIPT_DIR = Path(__file__).resolve().parent
-if SCRIPT_DIR.name == "detector":
-    # Running from server/detector/download_model.py -> save to server/../
-    MODEL_DIR = SCRIPT_DIR.parent.parent / "ai-text-detector-v1.01"
-elif SCRIPT_DIR.name == "server":
-    # Running from server/download_model.py
-    MODEL_DIR = SCRIPT_DIR.parent / "ai-text-detector-v1.01"
-else:
-    # Fallback: current working directory
-    MODEL_DIR = Path.cwd() / "ai-text-detector-v1.01"
+# Resolve: script is in detector/, model goes one level up
+SCRIPT_DIR = Path(__file__).resolve().parent  # e.g. /app/detector or .../server/detector
+MODEL_DIR = SCRIPT_DIR.parent / "ai-text-detector-v1.01"  # e.g. /app/ or .../server/
 
+# Allow env override
 MODEL_DIR = Path(os.environ.get("DESKLIB_MODEL_DIR", str(MODEL_DIR)))
 
-print(f"Downloading model desklib/ai-text-detector-v1.01 to {MODEL_DIR}...")
+print(f"Downloading model desklib/ai-text-detector-v1.01 → {MODEL_DIR}")
 os.makedirs(MODEL_DIR, exist_ok=True)
 
 snapshot_download(
