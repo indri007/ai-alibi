@@ -140,7 +140,9 @@ function apiKeyAuth(req, res, next) {
 
 // ── Static Files ────────────────────────────────────────
 const path = require('path');
+// Static files
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '..', 'dist')));
 
 // ── Provider handlers ───────────────────────────────────
 const gptzeroHandler = require('./providers/gptzero');
