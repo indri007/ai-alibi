@@ -29,6 +29,14 @@ const PROVIDERS = {
     description: "Deteksi AI developer-friendly dengan statistik per-kalimat.",
     endpoint: "/api/detect/zerogpt",
     requiresKey: true
+  },
+  DESKLIB: {
+    id: "desklib",
+    name: "Desklib",
+    description: "RAID #1 — DeBERTa-v3-large, akurasi tertinggi (Cloud Run lokal).",
+    endpoint: "/api/detect",
+    requiresKey: false,
+    isLocal: true
   }
 };
 
@@ -209,6 +217,8 @@ function normalizeProviderResult(providerId, raw) {
       return normalizeGPTZero(raw);
     case "zerogpt":
       return normalizeZeroGPT(raw);
+    case "desklib":
+      return normalizeDesklib(raw);
     default:
       return createResult(false, -1, "UNKNOWN_PROVIDER", "Provider tidak dikenal.");
   }
@@ -252,6 +262,23 @@ function normalizeZeroGPT(raw) {
     humanProbability: aiPct >= 0 ? (100 - aiPct) / 100 : -1,
     aiWordCount: raw.aiWordCount ?? null,
     sentences: raw.sentences || [],
+    raw
+  });
+}
+
+function normalizeDesklib(raw) {
+  // Desklib returns: probability, label, is_ai_generated
+  const prob = raw.probability ?? -1;
+  const humanScore = prob >= 0 ? Math.round((1 - prob) * 100) : -1;
+
+  return createResult(true, humanScore, "OK", "Analisis Desklib berhasil.", {
+    provider: "Desklib (RAID #1)",
+    aiProbability: prob,
+    humanProbability: prob >= 0 ? 1 - prob : -1,
+    label: raw.label,
+    isAiGenerated: raw.isAiGenerated,
+    processingTimeMs: raw.processingTimeMs,
+    source: raw.source,
     raw
   });
 }
