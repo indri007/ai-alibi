@@ -39,7 +39,7 @@ let config = {
   l2Enabled: true,
   l3Enabled: false,
   l3Provider: "gptzero",
-  l3Proxy: "http://localhost:3001",
+  l3Proxy: "https://creative-alibi-994794168239.asia-southeast2.run.app",
   l3Consent: false
 };
 
@@ -602,7 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Get proxy URL from settings or default
   const proxyInput = document.getElementById('setting-l3-proxy');
-  const proxyUrl = proxyInput ? proxyInput.value : 'http://localhost:3001';
+  const proxyUrl = proxyInput ? proxyInput.value : 'https://creative-alibi-994794168239.asia-southeast2.run.app';
 
   chatBtn.addEventListener('click', () => {
     chatOpen = !chatOpen;

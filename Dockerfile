@@ -1,36 +1,12 @@
-# ============================================================
-# Desklib AI Text Detector - Cloud Run Dockerfile
-# Python FastAPI service with PyTorch + Transformers
-# Model: desklib/ai-text-detector-v1.01
-# ============================================================
-
-FROM python:3.11-slim
-
+FROM node:20-slim
 WORKDIR /app
 
-# Install system deps
-RUN apt-get update -qq && apt-get install -y -qq build-essential && rm -rf /var/lib/apt/lists/*
+COPY package*.json ./
+RUN npm install --production
 
-# Install Python deps
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir fastapi uvicorn[standard] transformers sentencepiece huggingface_hub pydantic
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+COPY . .
 
-# Copy detector source
-COPY server/detector/ detector/
+ENV PORT=8080
+EXPOSE 8080
 
-# Copy download script and download model
-COPY server/detector/download_model.py ./
-RUN python download_model.py && rm download_model.py
-
-# Verify model files
-RUN ls -lh /app/ai-text-detector-v1.01/ | head -5
-
-WORKDIR /app/detector
-
-EXPOSE 5000
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=120s \
-  CMD python -c "from urllib.request import urlopen; exit(0 if urlopen('http://localhost:5000/health').status==200 else 1)"
-
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000"]
+CMD ["node", "server/index.js"]

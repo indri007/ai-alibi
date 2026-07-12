@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>api/detect — Test | Creative Alibi | Microsoft Azure</title>
+<link rel="icon" type="image/png" href="/favicon.png" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; }
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    background: #faf9f8;
+    color: #201f1e;
+    font-size: 13px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 12px;
+    background: #1b1a19;
+    color: #fff;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .menu-icon {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 2px; cursor: pointer; color: #c8c6c4;
+  }
+  .menu-icon:hover { background: rgba(255,255,255,0.08); }
+  .menu-icon svg { width: 16px; height: 16px; }
+  .brand { display: flex; align-items: center; gap: 8px; }
+  .brand img { width: 18px; height: 18px; border-radius: 3px; }
+  .brand span { font-size: 14px; font-weight: 600; }
+  .topbar-search {
+    flex: 1; max-width: 480px; margin-left: 8px;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 2px; padding: 0 10px; height: 28px; color: #979593;
+  }
+  .topbar-search svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .topbar-search span { font-size: 12px; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+  .icon-btn {
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    border-radius: 2px; color: #c8c6c4; cursor: pointer;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,0.08); }
+  .icon-btn svg { width: 15px; height: 15px; }
+
+  .breadcrumb-strip {
+    display: flex; align-items: center; gap: 6px;
+    height: 34px; padding: 0 16px;
+    background: #fff; border-bottom: 1px solid #edebe9;
+    font-size: 12px; color: #605e5c; flex-shrink: 0;
+  }
+  .breadcrumb-strip span.link { color: #0078d4; cursor: pointer; }
+  .breadcrumb-strip span.link:hover { text-decoration: underline; }
+  .breadcrumb-strip svg { width: 10px; height: 10px; color: #a19f9d; }
+
+  .blade-header {
+    padding: 14px 20px 0;
+    background: #fff;
+    border-bottom: 1px solid #edebe9;
+  }
+  .blade-title-row { display: flex; align-items: center; gap: 10px; }
+  .blade-icon {
+    width: 32px; height: 32px; border-radius: 6px;
+    background: linear-gradient(135deg, #e253c3 0%, #8764b8 55%, #5b3e96 100%);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(91,62,150,0.35);
+  }
+  .blade-icon svg { width: 17px; height: 17px; }
+  .blade-title h1 { font-size: 17px; font-weight: 600; line-height: 1.2; }
+  .blade-title .path {
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 11.5px; color: #605e5c; margin-top: 1px;
+  }
+  .method-chip {
+    font-family: Consolas, monospace;
+    font-size: 10px; font-weight: 700;
+    background: #f1e8fb; color: #8764b8;
+    padding: 2px 6px; border-radius: 2px;
+    margin-right: 6px;
+  }
+
+  .pivot-bar { display: flex; gap: 2px; margin-top: 12px; }
+  .pivot-item {
+    padding: 8px 4px; font-size: 12.5px; color: #605e5c;
+    border-bottom: 2px solid transparent; cursor: pointer;
+    margin-right: 20px;
+  }
+  .pivot-item.active { color: #0078d4; border-bottom-color: #0078d4; font-weight: 600; }
+
+  .command-bar {
+    display: flex; align-items: center; gap: 4px;
+    padding: 6px 20px; background: #fff; border-bottom: 1px solid #edebe9;
+    flex-shrink: 0;
+  }
+  .cmd-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 10px; border-radius: 2px;
+    color: #323130; font-size: 12.5px; cursor: pointer;
+    border: none; background: none;
+  }
+  .cmd-btn:hover:not(:disabled) { background: #f3f2f1; }
+  .cmd-btn:disabled { color: #a19f9d; cursor: not-allowed; }
+  .cmd-btn.primary { color: #0078d4; font-weight: 600; }
+  .cmd-btn svg { width: 14px; height: 14px; }
+  .cmd-sep { width: 1px; height: 20px; background: #edebe9; margin: 0 6px; }
+
+  .blade-body {
+    display: flex;
+    height: calc(100vh - 44px - 34px - 96px - 40px);
+    min-height: 480px;
+  }
+  .pane {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column;
+    border-right: 1px solid #edebe9;
+    background: #fff;
+  }
+  .pane:last-child { border-right: none; background: #faf9f8; }
+  .pane-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; border-bottom: 1px solid #edebe9;
+    font-size: 11.5px; font-weight: 700; color: #605e5c;
+    text-transform: uppercase; letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  .pane-content { flex: 1; overflow-y: auto; padding: 16px; }
+
+  .field-group { margin-bottom: 16px; }
+  .field-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; color: #323130; margin-bottom: 6px;
+  }
+  .field-label .required { color: #a4262c; }
+  .field-hint { font-size: 11px; color: #a19f9d; margin-top: 4px; }
+
+  select, input[type=text], input[type=password] {
+    width: 100%; padding: 6px 8px;
+    border: 1px solid #8a8886; border-radius: 2px;
+    font-size: 13px; font-family: inherit; background: #fff;
+    color: #201f1e;
+  }
+  select:focus, input:focus, textarea:focus {
+    outline: none; border-color: #0078d4; box-shadow: 0 0 0 1px #0078d4;
+  }
+
+  textarea {
+    width: 100%; min-height: 220px;
+    padding: 10px; border: 1px solid #8a8886; border-radius: 2px;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 12.5px; line-height: 1.5; resize: vertical;
+    background: #fff; color: #201f1e;
+  }
+
+  .provider-picker {
+    display: flex; flex-direction: column; gap: 6px;
+    border: 1px solid #edebe9; border-radius: 4px; padding: 6px;
+    background: #faf9f8;
+  }
+  .provider-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px; border-radius: 3px; cursor: pointer;
+    border: 1px solid transparent;
+    background: #fff;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .provider-option:hover { background: #f3f2f1; }
+  .provider-option.selected {
+    background: #eff6fc; border-color: #0078d4;
+  }
+  .provider-tile {
+    width: 30px; height: 30px; border-radius: 6px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  .provider-tile svg { width: 15px; height: 15px; }
+  .provider-info { flex: 1; min-width: 0; }
+  .provider-name {
+    font-size: 12.5px; font-weight: 600; color: #201f1e;
+    font-family: Consolas, monospace;
+  }
+  .provider-desc { font-size: 11px; color: #605e5c; margin-top: 1px; }
+  .provider-check { width: 15px; height: 15px; flex-shrink: 0; opacity: 0; transition: opacity 0.12s; }
+  .provider-option.selected .provider-check { opacity: 1; }
+
+  .char-count { text-align: right; font-size: 11px; color: #a19f9d; margin-top: 4px; }
+  .char-count.ok { color: #107c10; font-weight: 600; }
+
+  .collapsible {
+    border-top: 1px solid #edebe9;
+    padding-top: 12px; margin-top: 4px;
+  }
+  .collapsible-head {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; color: #323130; cursor: pointer;
+    user-select: none;
+  }
+  .collapsible-head svg { width: 10px; height: 10px; transition: transform 0.15s; }
+  .collapsible-head.open svg { transform: rotate(90deg); }
+  .collapsible-body { display: none; margin-top: 10px; }
+  .collapsible-body.open { display: block; }
+
+  .status-line {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #edebe9;
+    font-size: 12.5px;
+    flex-shrink: 0;
+  }
+  .status-code {
+    font-family: Consolas, monospace; font-weight: 700;
+    padding: 2px 8px; border-radius: 2px; font-size: 11.5px;
+  }
+  .status-code.s2xx { background: #dff6dd; color: #107c10; }
+  .status-code.s4xx, .status-code.s5xx { background: #fde7e9; color: #a4262c; }
+  .status-code.pending { background: #f3f2f1; color: #605e5c; }
+  .status-meta { color: #605e5c; }
+
+  .verdict-banner {
+    margin: 12px 16px 0;
+    padding: 10px 14px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 600;
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+  .verdict-banner.show { display: flex; }
+  .verdict-banner.ai { background: #fde7e9; color: #a4262c; }
+  .verdict-banner.human { background: #dff6dd; color: #107c10; }
+  .verdict-banner.unknown { background: #f3f2f1; color: #605e5c; }
+  .verdict-banner svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .json-view {
+    margin: 12px 16px 16px;
+    background: #fff;
+    border: 1px solid #edebe9;
+    border-radius: 3px;
+    padding: 12px;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-x: auto;
+  }
+  .json-key { color: #0078d4; }
+  .json-string { color: #107c10; }
+  .json-number { color: #8764b8; }
+  .json-bool { color: #a4262c; }
+  .json-null { color: #a19f9d; }
+
+  .empty-state {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #a19f9d; padding: 40px 20px; text-align: center;
+    gap: 10px;
+  }
+  .empty-state svg { width: 40px; height: 40px; opacity: 0.5; }
+  .empty-state .title { font-size: 13px; font-weight: 600; color: #605e5c; }
+  .empty-state .sub { font-size: 12px; max-width: 280px; }
+
+  .spinner {
+    width: 13px; height: 13px;
+    border: 2px solid rgba(0,120,212,0.25);
+    border-top-color: #0078d4;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  .spinner.show { display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .info-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px; margin: 12px 16px 0;
+    background: #f3f9fd; border: 1px solid #c7e0f4;
+    border-radius: 2px; font-size: 12px; color: #323130;
+  }
+  .info-bar svg { width: 14px; height: 14px; color: #0078d4; flex-shrink: 0; }
+
+  footer {
+    padding: 8px 20px;
+    color: #a19f9d; font-size: 11px;
+    border-top: 1px solid #edebe9; background: #fff;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+  }
+  footer .region { display: flex; align-items: center; gap: 5px; }
+  footer .region .dot { width: 6px; height: 6px; border-radius: 50%; background: #107c10; }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="menu-icon"><svg viewBox="0 0 16 16" fill="currentColor"><rect y="2" width="16" height="1.4"/><rect y="7.3" width="16" height="1.4"/><rect y="12.6" width="16" height="1.4"/></svg></div>
+    <div class="brand"><img src="/icon.png" alt="" /><span>Creative Alibi</span></div>
+    <div class="topbar-search">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>
+      <span>Cari resource, provider, dokumentasi...</span>
+    </div>
+    <div class="topbar-right">
+      <div class="icon-btn" title="Notifikasi"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 6a4 4 0 118 0c0 3 1 4 1 4H3s1-1 1-4z"/><path d="M6.5 12.5a1.5 1.5 0 003 0"/></svg></div>
+      <div class="icon-btn" title="Pengaturan"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6L13 13M13 3l-1.4 1.4M4.4 11.6L3 13"/></svg></div>
+    </div>
+  </div>
+
+  <div class="breadcrumb-strip">
+    <span class="link" onclick="window.location.href='/'">Creative Alibi</span>
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3l5 5-5 5"/></svg>
+    <span class="link">API</span>
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3l5 5-5 5"/></svg>
+    <span>api/detect</span>
+  </div>
+
+  <div class="blade-header">
+    <div class="blade-title-row">
+      <div class="blade-icon">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l6.5 3.2v9.6L10 18l-6.5-3.2V5.2L10 2z" fill="rgba(255,255,255,0.15)" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><circle cx="10" cy="9.5" r="3" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M10 6.5v.01M7.4 8v.01M12.6 8v.01M7.8 11.5v.01M12.2 11.5v.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+      <div class="blade-title">
+        <h1>Test — api/detect</h1>
+        <div class="path"><span class="method-chip">POST</span>/api/detect</div>
+      </div>
+    </div>
+    <div class="pivot-bar">
+      <div class="pivot-item active">Test</div>
+      <div class="pivot-item">Design</div>
+      <div class="pivot-item">Settings</div>
+    </div>
+  </div>
+
+  <div class="command-bar">
+    <button class="cmd-btn primary" id="sendBtn" onclick="detectText()">
+      <span class="spinner" id="spinner"></span>
+      <svg id="sendIcon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5v4.2l7.3 1.3-7.3 1.3v4.2L14.5 8 2 2.5z"/></svg>
+      <span id="sendLabel">Send</span>
+    </button>
+    <div class="cmd-sep"></div>
+    <button class="cmd-btn" onclick="clearAll()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 4.5h9M6.3 4.5V3a1 1 0 011-1h1.4a1 1 0 011 1v1.5M4.5 4.5l.6 8.3a1 1 0 001 .9h3.8a1 1 0 001-.9l.6-8.3"/><path d="M6.7 7v4M9.3 7v4"/></svg>
+      Clear
+    </button>
+    <div class="cmd-sep"></div>
+    <button class="cmd-btn" onclick="copyCurl()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="8" height="8" rx="1.5"/><path d="M10.5 6V4.5a1.5 1.5 0 00-1.5-1.5H3.5A1.5 1.5 0 002 4.5v6A1.5 1.5 0 003.5 12H5"/></svg>
+      Copy as cURL
+    </button>
+  </div>
+
+  <div class="blade-body">
+    <div class="pane">
+      <div class="pane-header"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="width:13px;height:13px;"><path d="M2 8h6M8 8l3-3M8 8l3 3"/><path d="M11 2v3M11 11v3"/></svg>Request</div>
+      <div class="pane-content">
+
+        <div class="field-group">
+          <div class="field-label"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" style="width:13px;height:13px;color:#605e5c;"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Provider <span class="required">*</span></div>
+          <div class="provider-picker" id="providerPicker">
+            <div class="provider-option selected" data-value="desklib" onclick="selectProvider(this)">
+              <div class="provider-tile" style="background:linear-gradient(135deg,#00b4d8,#0077b6);">
+                <svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.5"><path d="M2 8a6 6 0 1112 0 6 6 0 01-12 0z"/><path d="M5.5 8l2 2 3.5-4.5"/></svg>
+              </div>
+              <div class="provider-info">
+                <div class="provider-name">desklib</div>
+                <div class="provider-desc">RAID #1, lokal · cepat &amp; gratis</div>
+              </div>
+              <svg class="provider-check" viewBox="0 0 16 16" fill="none" stroke="#0078d4" stroke-width="2"><path d="M3 8.5l3.5 3.5L13 4.5"/></svg>
+            </div>
+            <div class="provider-option" data-value="gptzero" onclick="selectProvider(this)">
+              <div class="provider-tile" style="background:linear-gradient(135deg,#ff8a65,#e64a19);">
+                <svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 2"/></svg>
+              </div>
+              <div class="provider-info">
+                <div class="provider-name">gptzero</div>
+                <div class="provider-desc">GPTZero — layanan eksternal</div>
+              </div>
+              <svg class="provider-check" viewBox="0 0 16 16" fill="none" stroke="#0078d4" stroke-width="2"><path d="M3 8.5l3.5 3.5L13 4.5"/></svg>
+            </div>
+            <div class="provider-option" data-value="zerogpt" onclick="selectProvider(this)">
+              <div class="provider-tile" style="background:linear-gradient(135deg,#66bb6a,#2e7d32);">
+                <svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.5"><path d="M2 8h3l1.5-4L9 12l1.5-4H14"/></svg>
+              </div>
+              <div class="provider-info">
+                <div class="provider-name">zerogpt</div>
+                <div class="provider-desc">ZeroGPT — layanan eksternal</div>
+              </div>
+              <svg class="provider-check" viewBox="0 0 16 16" fill="none" stroke="#0078d4" stroke-width="2"><path d="M3 8.5l3.5 3.5L13 4.5"/></svg>
+            </div>
+            <div class="provider-option" data-value="watsonx" onclick="selectProvider(this)">
+              <div class="provider-tile" style="background:linear-gradient(135deg,#7c4dff,#4527a0);">
+                <svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.5"><rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M5.5 8.5l1.8 1.8L11 6.3"/></svg>
+              </div>
+              <div class="provider-info">
+                <div class="provider-name">watsonx</div>
+                <div class="provider-desc">IBM watsonx.ai (Granite)</div>
+              </div>
+              <svg class="provider-check" viewBox="0 0 16 16" fill="none" stroke="#0078d4" stroke-width="2"><path d="M3 8.5l3.5 3.5L13 4.5"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" style="width:13px;height:13px;color:#605e5c;"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M4.5 6.5h7M4.5 9h5"/></svg>text <span class="required">*</span></div>
+          <textarea id="text" placeholder="Tempel atau ketik teks yang ingin diuji di sini (minimum 50 karakter)..."></textarea>
+          <div class="char-count" id="charCount">0 karakter · minimum 50</div>
+        </div>
+
+        <div class="collapsible">
+          <div class="collapsible-head" id="headersToggle" onclick="toggleHeaders()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l5 5-5 5"/></svg>
+            Headers (opsional)
+          </div>
+          <div class="collapsible-body" id="headersBody">
+            <div class="field-group" style="margin-top:10px;">
+              <div class="field-label">X-API-Key</div>
+              <input type="password" id="apiKey" placeholder="Isi jika server mengaktifkan proteksi API Key" />
+              <div class="field-hint">Hanya diperlukan jika server berjalan dengan API_KEY aktif di .env</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="pane">
+      <div class="pane-header"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="width:13px;height:13px;"><path d="M3 3l3 3-3 3M3 12h6"/><path d="M11 5l3 3-3 3M11 3v10"/></svg>Response</div>
+      <div id="responseArea" style="flex:1; display:flex; flex-direction:column; min-height:0; overflow-y:auto;">
+        <div class="empty-state" id="emptyState">
+          <svg viewBox="0 0 48 48" fill="none">
+            <rect x="8" y="10" width="32" height="28" rx="3" stroke="#c8c6c4" stroke-width="1.6"/>
+            <path d="M8 17h32" stroke="#c8c6c4" stroke-width="1.6"/>
+            <circle cx="12.5" cy="13.5" r="0.9" fill="#c8c6c4"/>
+            <circle cx="15.5" cy="13.5" r="0.9" fill="#c8c6c4"/>
+            <circle cx="18.5" cy="13.5" r="0.9" fill="#c8c6c4"/>
+            <path d="M14 23h20M14 27h14M14 31h17" stroke="#dcdad8" stroke-width="1.6" stroke-linecap="round"/>
+            <circle cx="34" cy="30" r="9" fill="#faf9f8" stroke="#c8c6c4" stroke-width="1.6"/>
+            <path d="M30.5 30l2.5 2.5 5-5.5" stroke="#a19f9d" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="title">Belum ada request</div>
+          <div class="sub">Isi teks di panel Request, lalu klik Send untuk melihat hasil deteksi di sini.</div>
+        </div>
+
+        <div id="statusLine" class="status-line" style="display:none;">
+          <span class="status-code" id="statusCode">—</span>
+          <span class="status-meta" id="statusMeta">—</span>
+        </div>
+        <div class="verdict-banner" id="verdictBanner">
+          <svg id="verdictIcon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/></svg>
+          <span id="verdictText">—</span>
+        </div>
+        <div class="info-bar" id="infoBar" style="display:none;">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.3M8 5.1h.01"/></svg>
+          <span>Skor mentah dari provider ditampilkan di bawah dalam format JSON asli.</span>
+        </div>
+        <div class="json-view" id="jsonView" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Creative Alibi API &nbsp;·&nbsp; api/detect</span>
+    <span class="region"><span class="dot"></span>Southeast Asia (asia-southeast2)</span>
+  </footer>
+
+<script>
+  const API_BASE = window.location.origin;
+  const textEl = document.getElementById('text');
+  const charCountEl = document.getElementById('charCount');
+  let selectedProvider = 'desklib';
+
+  function selectProvider(el) {
+    document.querySelectorAll('.provider-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedProvider = el.getAttribute('data-value');
+  }
+
+  textEl.addEventListener('input', () => {
+    const len = textEl.value.trim().length;
+    charCountEl.textContent = len + ' karakter · minimum 50';
+    charCountEl.classList.toggle('ok', len >= 50);
+  });
+
+  function toggleHeaders() {
+    document.getElementById('headersToggle').classList.toggle('open');
+    document.getElementById('headersBody').classList.toggle('open');
+  }
+
+  function clearAll() {
+    textEl.value = '';
+    charCountEl.textContent = '0 karakter · minimum 50';
+    charCountEl.classList.remove('ok');
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('statusLine').style.display = 'none';
+    document.getElementById('verdictBanner').classList.remove('show');
+    document.getElementById('infoBar').style.display = 'none';
+    document.getElementById('jsonView').style.display = 'none';
+  }
+
+  function copyCurl() {
+    const provider = selectedProvider;
+    const text = textEl.value.trim().replace(/"/g, '\\"');
+    const apiKey = document.getElementById('apiKey').value.trim();
+    let cmd = `curl -X POST ${API_BASE}/api/detect \\\n  -H "Content-Type: application/json" \\\n`;
+    if (apiKey) cmd += `  -H "X-API-Key: ${apiKey}" \\\n`;
+    cmd += `  -d '{"provider":"${provider}","text":"${text}"}'`;
+    navigator.clipboard.writeText(cmd).then(() => {
+      const btn = event.currentTarget;
+      const original = btn.innerHTML;
+      btn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8l3.5 3.5L13 5"/></svg> Copied';
+      setTimeout(() => { btn.innerHTML = original; }, 1600);
+    });
+  }
+
+  function syntaxHighlight(json) {
+    const str = JSON.stringify(json, null, 2);
+    return str.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false)\b|\bnull\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+      (match) => {
+        let cls = 'json-number';
+        if (/^"/.test(match)) {
+          cls = /:$/.test(match) ? 'json-key' : 'json-string';
+        } else if (/true|false/.test(match)) {
+          cls = 'json-bool';
+        } else if (/null/.test(match)) {
+          cls = 'json-null';
+        }
+        return `<span class="${cls}">${match}</span>`;
+      });
+  }
+
+  async function detectText() {
+    const provider = selectedProvider;
+    const text = textEl.value.trim();
+    const apiKey = document.getElementById('apiKey').value.trim();
+
+    const sendBtn = document.getElementById('sendBtn');
+    const spinner = document.getElementById('spinner');
+    const sendIcon = document.getElementById('sendIcon');
+    const sendLabel = document.getElementById('sendLabel');
+    const emptyState = document.getElementById('emptyState');
+    const statusLine = document.getElementById('statusLine');
+    const statusCode = document.getElementById('statusCode');
+    const statusMeta = document.getElementById('statusMeta');
+    const verdictBanner = document.getElementById('verdictBanner');
+    const infoBar = document.getElementById('infoBar');
+    const jsonView = document.getElementById('jsonView');
+
+    if (text.length < 50) {
+      emptyState.style.display = 'none';
+      statusLine.style.display = 'flex';
+      statusCode.textContent = 'Error';
+      statusCode.className = 'status-code s4xx';
+      statusMeta.textContent = 'Teks terlalu pendek — minimum 50 karakter';
+      verdictBanner.classList.remove('show');
+      infoBar.style.display = 'none';
+      jsonView.style.display = 'none';
+      return;
+    }
+
+    sendBtn.disabled = true;
+    spinner.classList.add('show');
+    sendIcon.style.display = 'none';
+    sendLabel.textContent = 'Sending...';
+    emptyState.style.display = 'none';
+    statusLine.style.display = 'flex';
+    statusCode.textContent = '···';
+    statusCode.className = 'status-code pending';
+    statusMeta.textContent = 'Menunggu respons...';
+    verdictBanner.classList.remove('show');
+    infoBar.style.display = 'none';
+    jsonView.style.display = 'none';
+
+    const t0 = performance.now();
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (apiKey) headers['X-API-Key'] = apiKey;
+
+      const res = await fetch(API_BASE + '/api/detect', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ provider, text })
+      });
+      const elapsed = Math.round(performance.now() - t0);
+      const data = await res.json();
+
+      statusCode.textContent = res.status + ' ' + (res.ok ? 'OK' : (res.status >= 500 ? 'Error' : 'Bad Request'));
+      statusCode.className = 'status-code ' + (res.ok ? 's2xx' : (res.status >= 500 ? 's5xx' : 's4xx'));
+      statusMeta.textContent = elapsed + ' ms · ' + provider;
+
+      if (!res.ok) {
+        verdictBanner.className = 'verdict-banner unknown show';
+        document.getElementById('verdictText').textContent = data.error || 'Request gagal diproses.';
+        jsonView.style.display = 'block';
+        jsonView.innerHTML = syntaxHighlight(data);
+        return;
+      }
+
+      renderVerdict(data);
+      infoBar.style.display = 'flex';
+      jsonView.style.display = 'block';
+      jsonView.innerHTML = syntaxHighlight(data);
+
+    } catch (err) {
+      statusCode.textContent = 'Network Error';
+      statusCode.className = 'status-code s5xx';
+      statusMeta.textContent = 'Tidak dapat terhubung ke server';
+      verdictBanner.className = 'verdict-banner unknown show';
+      document.getElementById('verdictText').textContent = err.message || 'Koneksi ke server gagal.';
+    } finally {
+      sendBtn.disabled = false;
+      spinner.classList.remove('show');
+      sendIcon.style.display = 'inline-block';
+      sendLabel.textContent = 'Send';
+    }
+  }
+
+  function renderVerdict(data) {
+    const banner = document.getElementById('verdictBanner');
+    const icon = document.getElementById('verdictIcon');
+    const text = document.getElementById('verdictText');
+
+    let label = 'Hasil diterima — lihat detail JSON di bawah';
+    let cls = 'unknown';
+    const flat = JSON.stringify(data).toLowerCase();
+
+    if (flat.includes('"is_ai_generated":true') || flat.includes('"ai_generated":true') || flat.includes('"label":"ai"')) {
+      label = 'Terindikasi ditulis oleh AI';
+      cls = 'ai';
+    } else if (flat.includes('"is_ai_generated":false') || flat.includes('"ai_generated":false') || flat.includes('"label":"human"')) {
+      label = 'Terindikasi ditulis oleh manusia';
+      cls = 'human';
+    }
+
+    banner.className = 'verdict-banner ' + cls + ' show';
+    if (cls === 'ai') {
+      icon.setAttribute('viewBox', '0 0 16 16');
+      icon.innerHTML = '<path d="M8 1.5L1.5 4.5v4c0 3.5 2.7 6.3 6.5 7 3.8-.7 6.5-3.5 6.5-7v-4L8 1.5z" fill="none" stroke-linejoin="round"/><path d="M8 6v3M8 10.7h.01" stroke-linecap="round"/>';
+    } else if (cls === 'human') {
+      icon.setAttribute('viewBox', '0 0 16 16');
+      icon.innerHTML = '<path d="M8 1.5L1.5 4.5v4c0 3.5 2.7 6.3 6.5 7 3.8-.7 6.5-3.5 6.5-7v-4L8 1.5z" fill="none" stroke-linejoin="round"/><path d="M5.3 8.2l1.9 1.9 3.7-4.3" stroke-linecap="round" stroke-linejoin="round"/>';
+    } else {
+      icon.setAttribute('viewBox', '0 0 16 16');
+      icon.innerHTML = '<circle cx="8" cy="8" r="6"/><path d="M8 7v3M8 5.3h.01" stroke-linecap="round"/>';
+    }
+    text.textContent = label;
+  }
+</script>
+</body>
+</html>
