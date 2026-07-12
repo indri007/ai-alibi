@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Creative Alibi — Admin Lisensi</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #f7f7f8; }
+  h1 { font-size: 20px; }
+  input, button { font-size: 14px; padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; }
+  button { background: #2f6fed; color: white; border: none; cursor: pointer; }
+  button:hover { background: #2558c2; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; font-size: 13px; }
+  .used { color: #a5432b; } .unused { color: #2f7a4f; }
+  #loginBox, #dashboard { display: none; }
+  .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<div id="loginBox" class="card">
+  <h1>Login Admin</h1>
+  <input type="password" id="pwInput" placeholder="Password admin" style="width:250px">
+  <button onclick="login()">Masuk</button>
+  <p id="loginError" style="color:red"></p>
+</div>
+
+<div id="dashboard">
+  <h1>Creative Alibi — Manajemen Lisensi</h1>
+
+  <div class="card">
+    <h3>Generate Lisensi Baru</h3>
+    <label>Masa berlaku (hari): <input type="number" id="daysValid" value="365" style="width:80px"></label>
+    <label>Catatan (opsional): <input type="text" id="note" placeholder="misal: nama pembeli"></label>
+    <button onclick="generate()">+ Generate</button>
+    <p id="genResult"></p>
+  </div>
+
+  <div class="card">
+    <h3>Daftar Lisensi</h3>
+    <button onclick="loadLicenses()">Refresh</button>
+    <table>
+      <thead><tr><th>Kode</th><th>Status</th><th>Catatan</th><th>Dibuat</th><th>Expired</th></tr></thead>
+      <tbody id="licenseTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  let adminPassword = sessionStorage.getItem('adminPassword') || '';
+
+  if (adminPassword) {
+    showDashboard();
+  } else {
+    document.getElementById('loginBox').style.display = 'block';
+  }
+
+  function login() {
+    adminPassword = document.getElementById('pwInput').value;
+    sessionStorage.setItem('adminPassword', adminPassword);
+    showDashboard();
+  }
+
+  function showDashboard() {
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadLicenses();
+  }
+
+  async function generate() {
+    const daysValid = parseInt(document.getElementById('daysValid').value || '365', 10);
+    const note = document.getElementById('note').value;
+    const res = await fetch('/api/admin/generate-license', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': adminPassword },
+      body: JSON.stringify({ daysValid, note })
+    });
+    if (res.status === 401) { alert('Password salah.'); sessionStorage.removeItem('adminPassword'); location.reload(); return; }
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('genResult').innerHTML = 'Kode baru: <b>' + data.license.key + '</b>';
+      loadLicenses();
+    } else {
+      document.getElementById('genResult').innerText = 'Gagal: ' + (data.error || 'unknown');
+    }
+  }
+
+  async function loadLicenses() {
+    const res = await fetch('/api/admin/licenses', {
+      headers: { 'X-Admin-Password': adminPassword }
+    });
+    if (res.status === 401) { alert('Password salah.'); sessionStorage.removeItem('adminPassword'); location.reload(); return; }
+    const data = await res.json();
+    const tbody = document.getElementById('licenseTable');
+    tbody.innerHTML = '';
+    (data.licenses || []).forEach(l => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${l.key}</td>
+        <td class="${l.used ? 'used' : 'unused'}">${l.used ? 'Terpakai' : 'Belum'}</td>
+        <td>${l.note || '-'}</td>
+        <td>${new Date(l.createdAt).toLocaleDateString('id-ID')}</td>
+        <td>${new Date(l.expiresAt).toLocaleDateString('id-ID')}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+</script>
+</body>
+</html>

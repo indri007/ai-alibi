@@ -4,10 +4,6 @@
    Memerlukan consent EKSPLISIT dari user sebelum mengirim teks.
    ============================================================ */
 
-/**
- * Daftar provider yang didukung.
- * Setiap provider punya adapter sendiri.
- */
 const PROVIDERS = {
   WATSONX: {
     id: "watsonx",
@@ -40,50 +36,35 @@ const PROVIDERS = {
   }
 };
 
-/**
- * Cache hasil deteksi agar tidak mengirim teks yang sama dua kali.
- * Key = SHA-256 hash teks, Value = hasil API.
- */
 const resultCache = new Map();
 const MAX_CACHE_SIZE = 20;
 
-/**
- * Status consent user — default false, harus diaktifkan eksplisit.
- */
 let userConsent = false;
 let activeProvider = null;
-let backendUrl = "https://localhost:3001"; // proxy backend
+let backendUrl = "https://ai-alibi-backend-994794168239.asia-southeast2.run.app";
+
+// GANTI STRING DI BAWAH INI dengan API_KEY yang sama persis
+// dengan yang di-set di Cloud Run env var backend (ai-alibi-backend)
+const API_KEY = "8da2e30cc2a0a856dd5279ea0c23d1f80d7a4fec13909ca8da2f092c323b142e";
 
 /* ========================= Configuration ========================= */
 
-/**
- * Inisialisasi API detector dengan provider dan proxy URL.
- */
 export function initApiDetector(config) {
-  backendUrl = config.proxyUrl || "http://localhost:3001";
+  backendUrl = config.proxyUrl || backendUrl;
   const provider = Object.values(PROVIDERS).find(p => p.id === config.provider);
   if (provider) {
     activeProvider = provider;
   }
 }
 
-/**
- * Set consent status. User HARUS menyetujui sebelum teks dikirim.
- */
 export function setApiConsent(consent) {
   userConsent = !!consent;
 }
 
-/**
- * Cek apakah user sudah memberikan consent.
- */
 export function hasConsent() {
   return userConsent;
 }
 
-/**
- * Ambil status API.
- */
 export function getApiStatus() {
   return {
     consented: userConsent,
@@ -92,24 +73,13 @@ export function getApiStatus() {
   };
 }
 
-/**
- * Ambil daftar semua provider yang tersedia.
- */
 export function getProviders() {
   return Object.values(PROVIDERS);
 }
 
 /* ========================= Core Detection ========================= */
 
-/**
- * Kirim teks ke API deteksi AI via backend proxy.
- * PENTING: Fungsi ini TIDAK akan berjalan tanpa consent eksplisit.
- *
- * @param {string} text — teks dokumen untuk dianalisis
- * @returns {object} — hasil deteksi dari API
- */
 export async function detectWithApi(text) {
-  // Guard: consent wajib
   if (!userConsent) {
     return createResult(
       false, -1, "USER_NO_CONSENT",
@@ -118,7 +88,6 @@ export async function detectWithApi(text) {
     );
   }
 
-  // Guard: provider harus dipilih
   if (!activeProvider) {
     return createResult(
       false, -1, "NO_PROVIDER",
@@ -126,7 +95,6 @@ export async function detectWithApi(text) {
     );
   }
 
-  // Guard: teks tidak boleh kosong
   if (!text || text.trim().length < 50) {
     return createResult(
       false, -1, "TEXT_TOO_SHORT",
@@ -134,7 +102,6 @@ export async function detectWithApi(text) {
     );
   }
 
-  // Cek cache
   const cacheKey = await hashText(text.trim());
   if (resultCache.has(cacheKey)) {
     const cached = resultCache.get(cacheKey);
@@ -142,11 +109,13 @@ export async function detectWithApi(text) {
     return cached;
   }
 
-  // Kirim ke backend proxy
   try {
     const response = await fetch(`${backendUrl}/api/detect`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": API_KEY
+      },
       body: JSON.stringify({ text: text.trim(), provider: activeProvider.id })
     });
 
@@ -161,7 +130,6 @@ export async function detectWithApi(text) {
     const data = await response.json();
     const result = normalizeProviderResult(activeProvider.id, data);
 
-    // Simpan ke cache
     if (resultCache.size >= MAX_CACHE_SIZE) {
       const firstKey = resultCache.keys().next().value;
       resultCache.delete(firstKey);
@@ -170,7 +138,6 @@ export async function detectWithApi(text) {
 
     return result;
   } catch (err) {
-    // Network error / backend tidak jalan
     if (err.name === "TypeError" && err.message.includes("fetch")) {
       return createResult(
         false, -1, "NETWORK_ERROR",
@@ -185,9 +152,6 @@ export async function detectWithApi(text) {
   }
 }
 
-/**
- * Cek apakah backend proxy server bisa dijangkau.
- */
 export async function checkBackendHealth() {
   try {
     const response = await fetch(`${backendUrl}/api/health`, {
@@ -206,9 +170,6 @@ export async function checkBackendHealth() {
 
 /* ========================= Provider Normalizers ========================= */
 
-/**
- * Normalisasi hasil dari berbagai provider ke format standar.
- */
 function normalizeProviderResult(providerId, raw) {
   switch (providerId) {
     case "watsonx":
@@ -236,7 +197,6 @@ function normalizeWatsonx(raw) {
 }
 
 function normalizeGPTZero(raw) {
-  // GPTZero returns: completely_generated_prob, overall_burstiness, etc.
   const prob = raw.completely_generated_prob ?? raw.ai_prob ?? -1;
   const humanScore = prob >= 0 ? Math.round((1 - prob) * 100) : -1;
 
@@ -252,7 +212,6 @@ function normalizeGPTZero(raw) {
 }
 
 function normalizeZeroGPT(raw) {
-  // ZeroGPT returns: is_human_written, ai_percentage, etc.
   const aiPct = raw.ai_percentage ?? raw.fakePercentage ?? -1;
   const humanScore = aiPct >= 0 ? Math.round(100 - aiPct) : -1;
 
@@ -267,7 +226,6 @@ function normalizeZeroGPT(raw) {
 }
 
 function normalizeDesklib(raw) {
-  // Desklib returns: probability, label, is_ai_generated
   const prob = raw.probability ?? -1;
   const humanScore = prob >= 0 ? Math.round((1 - prob) * 100) : -1;
 
@@ -303,9 +261,6 @@ async function hashText(text) {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-/**
- * Interpretasi skor API untuk tampilan UI.
- */
 export function interpretApiScore(score) {
   if (score < 0) return { color: "#888", label: "API belum dijalankan", level: "UNKNOWN" };
   if (score >= 75) return { color: "#2f7a4f", label: "API mendeteksi: kemungkinan besar tulisan manusia.", level: "HUMAN_LIKELY" };
@@ -313,9 +268,6 @@ export function interpretApiScore(score) {
   return { color: "#a5432b", label: "API mendeteksi: kemungkinan besar teks AI-generated.", level: "AI_LIKELY" };
 }
 
-/**
- * Reset semua state API detector (consent, cache, provider).
- */
 export function resetApiDetector() {
   userConsent = false;
   activeProvider = null;
