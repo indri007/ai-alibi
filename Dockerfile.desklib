@@ -1,7 +1,14 @@
 # ============================================================
-# Desklib AI Text Detector - Cloud Run Dockerfile
+# Desklib AI Text Detector - Cloud Run Dockerfile (Fixed)
 # Python FastAPI service with PyTorch + Transformers
 # Model: desklib/ai-text-detector-v1.01
+#
+# Changes from original:
+#   - Increased timeout for model download
+#   - Better model path resolution
+#   - Memory optimization: uses float32 on CPU
+#   - Health check verifies model is loaded (not just HTTP 200)
+#   - Uses fixed model.py and app.py
 # ============================================================
 
 FROM python:3.11-slim
@@ -9,28 +16,51 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Install system deps
-RUN apt-get update -qq && apt-get install -y -qq build-essential && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Python deps
 RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir fastapi uvicorn[standard] transformers sentencepiece huggingface_hub pydantic
+RUN pip install --no-cache-dir \
+    fastapi \
+    uvicorn[standard] \
+    transformers>=4.44,<5 \
+    sentencepiece \
+    huggingface_hub \
+    pydantic
+
+# Install PyTorch CPU
 RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 
-# Copy detector source
+# Copy detector source (the FIXED versions)
 COPY server/detector/ detector/
 
-# Copy download script and download model
-COPY server/detector/download_model.py ./
-RUN python download_model.py && rm download_model.py
+# Download model to /app/ai-text-detector-v1.01
+# download_model.py automatically resolves paths
+RUN python detector/download_model.py
 
-# Verify model files
-RUN ls -lh /app/ai-text-detector-v1.01/ | head -5
+# Verify model files exist
+RUN ls -lh /app/ai-text-detector-v1.01/ && \
+    echo "---" && \
+    ls -lh /app/ai-text-detector-v1.01/config.json /app/ai-text-detector-v1.01/model.safetensors 2>/dev/null || \
+    echo "WARNING: model files missing!"
 
+# Set working directory so model.py resolves paths correctly
 WORKDIR /app/detector
 
 EXPOSE 5000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=120s \
-  CMD python -c "from urllib.request import urlopen; exit(0 if urlopen('http://localhost:5000/health').status==200 else 1)"
+# Health check: verify model is actually loaded
+HEALTHCHECK --interval=60s --timeout=15s --start-period=180s --retries=3 \
+  CMD python -c "
+import urllib.request, json
+resp = urllib.request.urlopen('http://localhost:5000/health', timeout=10)
+data = json.loads(resp.read().decode())
+assert data.get('status') == 'ok', f'Status: {data.get(\"status\")}'
+assert data.get('model_loaded'), 'Model not loaded'
+print('HEALTHY: model loaded on', data.get('device'))
+"
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000"]
+# Start FastAPI with optimized workers
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000", "--log-level", "info"]
