@@ -1,0 +1,16 @@
+.git/
+node_modules/
+.env
+.env.*
+*.md
+src/
+server/detector/
+server/bot/
+server/.env.example
+assets/
+docs/
+.gitignore
+.gitattributes
+cloudbuild.yaml
+webpack.config.js
+package-lock.json
