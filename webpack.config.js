@@ -1,9 +1,8 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const devCerts = require("office-addin-dev-certs");
 
-module.exports = async (env, options) => {
+module.exports = (env, options) => {
   const isProd = options.mode === "production";
 
   const config = {
@@ -32,8 +31,12 @@ module.exports = async (env, options) => {
           { from: "src/taskpane/taskpane.css", to: "[name][ext]" }
         ]
       })
-    ],
-    devServer: {
+    ]
+  };
+
+  if (!isProd) {
+    // Dev-only: enable dev server with certs
+    config.devServer = {
       static: {
         directory: path.join(__dirname, "dist")
       },
@@ -41,8 +44,7 @@ module.exports = async (env, options) => {
         "Access-Control-Allow-Origin": "*"
       },
       server: {
-        type: "https",
-        options: isProd ? {} : await devCerts.getHttpsServerOptions()
+        type: "https"
       },
       port: 3000,
       proxy: [
@@ -52,8 +54,8 @@ module.exports = async (env, options) => {
           secure: false,
         }
       ]
-    }
-  };
+    };
+  }
 
   return config;
 };
