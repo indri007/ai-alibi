@@ -50,8 +50,12 @@ npm run dev-server   # taskpane dev server
 
 ---
 
-## 🔗 Live Demo — Cloud Run
+## 🔗 Live Demo
 
+### 🎈 Streamlit Interactive Web App (Live)
+**Streamlit App URL: [`https://ai-alibi-cccxvdhsdfskhhvbu8ushj.streamlit.app/`](https://ai-alibi-cccxvdhsdfskhhvbu8ushj.streamlit.app/)**
+
+### ⚡ Backend Proxy & Cloud Run
 Backend proxy server berjalan di Google Cloud Run:
 
 **Base URL: `https://ai-alibi-backend-994794168239.asia-southeast2.run.app`**
