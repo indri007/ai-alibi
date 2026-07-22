@@ -6,6 +6,18 @@ __pycache__/
 # ================= Environment =================
 .env
 server/.env
+*.env
 *.env.local
-.env
+*.env.*
 *.bak
+
+# ================= Scratch / Temp Scripts =================
+server/scripts/test-*.js
+server/scripts/get-*.js
+server/scripts/find-*.js
+server/scripts/create-*.js
+server/scripts/delete-*.js
+server/scripts/patch-*.js
+server/scripts/purge-*.js
+server/scripts/check-*.js
+server/scripts/associate-*.js

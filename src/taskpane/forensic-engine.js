@@ -317,46 +317,50 @@ export function generateForensicCertificatePayload(forensicResult, behavioralMet
     versi: "2.0.0",
     dibuat: forensicResult.timestamp,
 
-    // Skor utama
-    forensicConfidenceScore: forensicResult.score,
-    tingkatKepercayaan: forensicResult.confidenceLevel?.label || "N/A",
-    verdict: forensicResult.interpretation?.verdict || "UNKNOWN",
-    verdictLabel: forensicResult.interpretation?.label || "",
+    sesi: {
+      durasiDetik: behavioralMetrics?.durationSec || 0,
+      totalSampel: behavioralMetrics?.totalSamples || 0,
+      totalEdit: behavioralMetrics?.totalEdits || 0,
+      jedaTerdeteksi: behavioralMetrics?.pauses || 0,
+      rataRataJedaMs: Math.round(behavioralMetrics?.pauseMeanMs || 0),
+      lonjakanCharacter: behavioralMetrics?.bursts || 0,
+      rasioLonjakan: behavioralMetrics?.burstRatio ? (behavioralMetrics.burstRatio * 100).toFixed(1) + "%" : "0%",
+      revisiPenghapusan: behavioralMetrics?.revisions || 0,
+      intervalAktif: `${behavioralMetrics?.totalEdits || 0} editan`
+    },
 
-    // Layer breakdown
-    layerAktif: forensicResult.activeLayers,
-    totalLayer: forensicResult.totalLayers,
-    bobotLayer: forensicResult.weights,
+    forensik: {
+      skorForensik: forensicResult.score,
+      tingkatKepercayaan: forensicResult.confidenceLevel?.label || "N/A",
+      verdict: forensicResult.interpretation?.verdict || "UNKNOWN",
+      interpretasi: forensicResult.interpretation?.label || "",
+      layerAktif: forensicResult.activeLayers,
+      totalLayer: forensicResult.totalLayers,
+      bobotLayer: forensicResult.weights,
+      layer1_behavioral: {
+        aktif: !!forensicResult.layerDetails?.behavioral,
+        skor: forensicResult.layerDetails?.behavioral?.score ?? -1,
+        interpretasi: forensicResult.layerDetails?.behavioral?.interpretation || ""
+      },
+      layer2_linguistic: {
+        aktif: !!forensicResult.layerDetails?.linguistic,
+        skor: forensicResult.layerDetails?.linguistic?.score ?? -1,
+        confidence: forensicResult.layerDetails?.linguistic?.confidence || "NONE",
+        interpretasi: forensicResult.layerDetails?.linguistic?.interpretation || ""
+      },
+      layer3_api: {
+        aktif: !!forensicResult.layerDetails?.api,
+        skor: forensicResult.layerDetails?.api?.score ?? -1,
+        provider: forensicResult.layerDetails?.api?.provider || "N/A",
+        interpretasi: forensicResult.layerDetails?.api?.interpretation || ""
+      },
+      agreement: forensicResult.agreement
+    },
 
-    // Layer 1: Behavioral
-    behavioral: forensicResult.layerDetails?.behavioral || null,
-
-    // Layer 2: Linguistic
-    linguistic: forensicResult.layerDetails?.linguistic
-      ? {
-          score: forensicResult.layerDetails.linguistic.score,
-          confidence: forensicResult.layerDetails.linguistic.confidence,
-          interpretation: forensicResult.layerDetails.linguistic.interpretation
-        }
-      : null,
-
-    // Layer 3: API
-    apiDetection: forensicResult.layerDetails?.api
-      ? {
-          score: forensicResult.layerDetails.api.score,
-          provider: forensicResult.layerDetails.api.provider,
-          interpretation: forensicResult.layerDetails.api.interpretation
-        }
-      : null,
-
-    // Agreement
-    agreement: forensicResult.agreement,
-
-    // Behavioral metrics detail (dari v1)
-    metrikPerilaku: behavioralMetrics || null,
-
+    hashIntegritas: "",
     catatan: "Sertifikat ini dihasilkan oleh Creative Alibi v2.0 dengan sistem deteksi multi-layer. " +
       "Forensic Confidence Score menggabungkan analisis perilaku menulis, struktur linguistik teks, " +
       "dan (jika diaktifkan) hasil dari AI detector eksternal."
   };
 }
+
