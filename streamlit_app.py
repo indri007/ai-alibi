@@ -232,8 +232,8 @@ enable_l3 = st.sidebar.checkbox("Layer 3 — External API Detection", value=True
 l3_provider = st.sidebar.selectbox("API Provider Layer 3", ["IBM watsonx.ai (Granite)", "ZeroGPT", "Desklib (RAID #1)"])
 
 # Check st.secrets or input
-default_watson_key = st.secrets.get("WATSONX_API_KEY", "r4yfzQSBV5PMMPFQqFsjKnYqvjKMZ6F9etLNh-B_sfYd") if hasattr(st, "secrets") else "r4yfzQSBV5PMMPFQqFsjKnYqvjKMZ6F9etLNh-B_sfYd"
-default_watson_pid = st.secrets.get("WATSONX_PROJECT_ID", "64a49793-1531-4fee-8e8c-7bc0c511af50") if hasattr(st, "secrets") else "64a49793-1531-4fee-8e8c-7bc0c511af50"
+default_watson_key = st.secrets.get("WATSONX_API_KEY", "") if hasattr(st, "secrets") else ""
+default_watson_pid = st.secrets.get("WATSONX_PROJECT_ID", "") if hasattr(st, "secrets") else ""
 
 backend_proxy_url = st.sidebar.text_input("Backend Proxy URL", value="http://localhost:3001")
 
