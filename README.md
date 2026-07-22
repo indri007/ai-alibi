@@ -140,4 +140,8 @@ ai-alibi/
 
 ## 👥 Tim Creative Alibi
 
-Dibangun oleh tim 5 orang lintas disiplin untuk **IBM AI Builders Challenge** 2026.
+Dibangun oleh:
+- **Indri Anjar Kartika Sari**
+- **Raja**
+
+Dikembangkan khusus untuk **IBM AI Builders Challenge 2026**.
