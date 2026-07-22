@@ -27,23 +27,23 @@ st.markdown("""
     }
     
     .stApp {
-        background-color: #111318;
-        color: #E1E2E8;
+        background-color: #FAF9FD;
+        color: #1A1C1E;
     }
 
-    /* Material 3 Elevated Cards */
+    /* Material 3 Elevated Cards (Light Theme) */
     .glass-card {
-        background: linear-gradient(0deg, rgba(168, 199, 250, 0.08), rgba(168, 199, 250, 0.08)), #111318;
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: #FFFFFF;
+        border: 1px solid #73777F;
         border-radius: 28px;
         padding: 24px;
         margin-bottom: 20px;
-        box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+        box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.1), 0px 1px 2px 0px rgba(0, 0, 0, 0.06);
         transition: all 250ms cubic-bezier(0.2, 0, 0, 1);
     }
     .glass-card:hover {
-        background: linear-gradient(0deg, rgba(168, 199, 250, 0.12), rgba(168, 199, 250, 0.12)), #111318;
-        box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+        background: #F2F0F4;
+        box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px 2px 4px 0px rgba(0, 0, 0, 0.08);
     }
     
     .metric-badge {
@@ -55,11 +55,11 @@ st.markdown("""
         font-weight: 500;
         font-size: 0.85rem;
     }
-    .badge-green { background: #00522A; color: #8DF7A6; }
-    .badge-yellow { background: #43474E; color: #C3C6CF; }
-    .badge-red { background: #93000A; color: #FFDAD6; }
+    .badge-green { background: #C4EDD0; color: #00210B; }
+    .badge-yellow { background: #E1E2E8; color: #43474E; }
+    .badge-red { background: #FFDAD6; color: #410002; }
 
-    /* Score Ring Styling (M3) */
+    /* Score Ring Styling (M3 Light) */
     .score-box {
         text-align: center;
         padding: 30px;
@@ -71,9 +71,9 @@ st.markdown("""
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        border: 6px solid #A8C7FA;
-        box-shadow: 0 0 25px rgba(168, 199, 250, 0.2);
-        background: linear-gradient(0deg, rgba(168, 199, 250, 0.11), rgba(168, 199, 250, 0.11)), #111318;
+        border: 6px solid #0A56D9;
+        box-shadow: 0 0 20px rgba(10, 86, 217, 0.15);
+        background: #FFFFFF;
     }
 
     .score-value {
@@ -81,11 +81,11 @@ st.markdown("""
         font-weight: 500;
         font-family: 'JetBrains Mono', monospace;
         line-height: 1;
-        color: #A8C7FA;
+        color: #0A56D9;
     }
     .score-max {
         font-size: 0.9rem;
-        color: #C3C6CF;
+        color: #43474E;
     }
 
     pre, code {
@@ -95,19 +95,20 @@ st.markdown("""
 
     /* Material 3 Filled Buttons */
     .stButton > button {
-        background: #A8C7FA;
-        color: #062E6F;
+        background: #0A56D9;
+        color: #FFFFFF;
         font-weight: 500;
         letter-spacing: 0.1px;
         border: none;
         border-radius: 9999px;
         padding: 10px 24px;
         transition: all 250ms cubic-bezier(0.2, 0, 0, 1);
-        box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+        box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.1);
     }
     .stButton > button:hover {
-        background: linear-gradient(0deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08)), #A8C7FA;
-        box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+        background: #0042A5;
+        color: #FFFFFF;
+        box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.15);
     }
 
     .material-symbols-rounded {
