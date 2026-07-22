@@ -19,41 +19,47 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
     html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Roboto', sans-serif;
     }
     
     .stApp {
-        background-color: #0b0f19;
-        color: #e2e8f0;
+        background-color: #111318;
+        color: #E1E2E8;
     }
 
-    /* Glassmorphism Cards */
+    /* Material 3 Elevated Cards */
     .glass-card {
-        background: rgba(30, 41, 59, 0.7);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
+        background: linear-gradient(0deg, rgba(168, 199, 250, 0.08), rgba(168, 199, 250, 0.08)), #111318;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 28px;
         padding: 24px;
         margin-bottom: 20px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+        transition: all 250ms cubic-bezier(0.2, 0, 0, 1);
+    }
+    .glass-card:hover {
+        background: linear-gradient(0deg, rgba(168, 199, 250, 0.12), rgba(168, 199, 250, 0.12)), #111318;
+        box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
     }
     
     .metric-badge {
-        display: inline-block;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 16px;
+        border-radius: 9999px;
+        font-weight: 500;
         font-size: 0.85rem;
     }
-    .badge-green { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid #22c55e; }
-    .badge-yellow { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid #eab308; }
-    .badge-red { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid #ef4444; }
+    .badge-green { background: #00522A; color: #8DF7A6; }
+    .badge-yellow { background: #43474E; color: #C3C6CF; }
+    .badge-red { background: #93000A; color: #FFDAD6; }
 
-    /* Score Ring Styling */
+    /* Score Ring Styling (M3) */
     .score-box {
         text-align: center;
         padding: 30px;
@@ -65,39 +71,48 @@ st.markdown("""
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        border: 4px solid #3b82f6;
-        box-shadow: 0 0 25px rgba(59, 130, 246, 0.3);
-        background: radial-gradient(circle, rgba(30,58,138,0.2) 0%, rgba(15,23,42,0.6) 100%);
+        border: 6px solid #A8C7FA;
+        box-shadow: 0 0 25px rgba(168, 199, 250, 0.2);
+        background: linear-gradient(0deg, rgba(168, 199, 250, 0.11), rgba(168, 199, 250, 0.11)), #111318;
     }
 
     .score-value {
         font-size: 3.2rem;
-        font-weight: 800;
+        font-weight: 500;
         font-family: 'JetBrains Mono', monospace;
         line-height: 1;
+        color: #A8C7FA;
     }
     .score-max {
         font-size: 0.9rem;
-        color: #94a3b8;
+        color: #C3C6CF;
     }
 
-    /* Code & JSON Output */
     pre, code {
         font-family: 'JetBrains Mono', monospace !important;
+        border-radius: 12px;
     }
 
+    /* Material 3 Filled Buttons */
     .stButton > button {
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        color: white;
-        font-weight: 600;
+        background: #A8C7FA;
+        color: #062E6F;
+        font-weight: 500;
+        letter-spacing: 0.1px;
         border: none;
-        border-radius: 10px;
+        border-radius: 9999px;
         padding: 10px 24px;
-        transition: all 0.3s ease;
+        transition: all 250ms cubic-bezier(0.2, 0, 0, 1);
+        box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
     }
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        background: linear-gradient(0deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08)), #A8C7FA;
+        box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+    }
+
+    .material-symbols-rounded {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -198,7 +213,7 @@ def call_watsonx_direct(text, api_key, project_id, region="us-south"):
         res = requests.post(
             url,
             json={
-                "model_id": "ibm/granite-13b-chat-v2",
+                "model_id": "ibm/granite-3-8b-instruct",
                 "input": prompt,
                 "parameters": {"decoding_method": "greedy", "max_new_tokens": 150, "stop_sequences": ["}"]},
                 "project_id": project_id

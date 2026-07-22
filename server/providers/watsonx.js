@@ -45,13 +45,12 @@ JSON Output:`;
     const response = await axios.post(
       url,
       {
-        model_id: 'ibm/granite-13b-chat-v2', // Menggunakan IBM Granite Foundation Model
+        model_id: 'ibm/granite-3-8b-instruct', // Menggunakan IBM Granite 3 8B Instruct Model
         input: prompt,
         parameters: {
           decoding_method: 'greedy',
           max_new_tokens: 150,
-          repetition_penalty: 1,
-          stop_sequences: ["}"]
+          repetition_penalty: 1
         },
         project_id: projectId
       },
@@ -65,19 +64,16 @@ JSON Output:`;
     );
 
     let resultText = response.data.results[0].generated_text.trim();
-    if (!resultText.endsWith("}")) {
-      resultText += "}"; // Memastikan JSON valid jika terpotong oleh stop sequence
-    }
-
     let parsed;
-    try {
-      parsed = JSON.parse(resultText);
-    } catch (e) {
-      // Fallback jika model memberikan teks ekstra di luar JSON
-      const match = resultText.match(/\{[\s\S]*\}/);
-      if (match) {
-        parsed = JSON.parse(match[0]);
-      } else {
+    
+    // Extrak blok JSON menggunakan regex
+    const match = resultText.match(/\{[\s\S]*?\}/);
+    if (match) {
+      parsed = JSON.parse(match[0]);
+    } else {
+      try {
+        parsed = JSON.parse(resultText);
+      } catch (e) {
         throw new Error(`WatsonX tidak merespons dengan JSON yang valid: ${resultText}`);
       }
     }

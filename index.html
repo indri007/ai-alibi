@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative Alibi — Digital Notary for Human-Made Text</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --surface:#FFFFFF;
+    --surface-dim:#F6F8FC;
+    --on-surface:#1F1F1F;
+    --on-surface-soft:#5F6368;
+    --outline:#E1E3E6;
+
+    --blue:#4285F4;
+    --blue-dark:#1A56C4;
+    --green:#34A853;
+    --yellow:#FBBC05;
+    --red:#EA4335;
+
+    --body: 'Roboto', sans-serif;
+    --mono: 'Roboto Mono', monospace;
+    --radius: 16px;
+    --shadow-1: 0 1px 2px rgba(60,64,67,.15), 0 1px 3px rgba(60,64,67,.1);
+    --shadow-2: 0 4px 12px rgba(60,64,67,.15);
+    --mono: 'JetBrains Mono', monospace;
+    
+    --radius: 28px;
+    --radius-sm: 16px;
+    
+    --shadow-1: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-2: 0 4px 8px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+    
+    --m3-easing: cubic-bezier(0.2, 0, 0, 1);
+    --m3-duration: 250ms;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;background:var(--surface);color:var(--on-surface);
+    font-family:var(--body);line-height:1.6;overflow-x:hidden;
+  }
+  a{color:var(--blue);}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+  section{padding:96px 0;}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:50;background:rgba(250,249,253,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--outline);}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.15rem;color:var(--on-surface);}
+  .brand-mark{
+    width:36px;height:36px;border-radius:12px;
+    background: linear-gradient(135deg, var(--blue), var(--cyan));
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:.8rem;font-weight:700;color:#FFF;
+  }
+  nav ul{list-style:none;display:flex;gap:26px;margin:0;padding:0;font-size:.95rem;}
+  nav ul a{color:var(--on-surface-soft);text-decoration:none;font-weight:500;transition:color var(--m3-duration) var(--m3-easing);}
+  nav ul a:hover{color:var(--blue);}
+
+  /* HERO */
+  .hero{padding:96px 0 60px; background: radial-gradient(circle at 50% 0%, rgba(10,86,217,0.08) 0%, rgba(250,249,253,1) 70%);}
+  .eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--blue-dark);display:flex;align-items:center;gap:10px;margin-bottom:18px;font-weight:500;}
+  .eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(52,168,83,.18);}
+  h1{font-weight:700;font-size:clamp(2.2rem,4.4vw,3.4rem);line-height:1.12;margin:0 0 20px;max-width:16ch;letter-spacing:-.01em;}
+  h1 .accent{color:var(--blue);}
+  .lede{font-size:1.08rem;color:var(--on-surface-soft);max-width:58ch;margin-bottom:14px;}
+  .quote{font-style:italic;color:var(--on-surface);font-weight:500;margin-bottom:32px;font-size:1.02rem;}
+  .cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px;}
+  .btn{font-weight:600;font-size:.95rem;padding:13px 26px;border-radius:999px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:box-shadow .2s ease, transform .2s ease;}
+  .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-2);}
+  .btn-primary{background:var(--blue);color:#fff;}
+  .btn-ghost{border:1px solid var(--outline);color:var(--on-surface);}
+
+  /* Live score ring demo */
+  .evidence-card{margin-top:52px;background:var(--surface-dim);border:1px solid var(--outline);border-radius:var(--radius);box-shadow:var(--shadow-1);padding:26px 28px;max-width:680px;display:flex;gap:26px;align-items:center;flex-wrap:wrap;}
+  .ring-wrap{position:relative;width:110px;height:110px;flex:none;}
+  .ring-wrap svg{transform:rotate(-90deg);width:110px;height:110px;}
+  .ring-bg{fill:none;stroke:#E1E3E6;stroke-width:10;}
+  .ring-fg{fill:none;stroke:var(--green);stroke-width:10;stroke-linecap:round;stroke-dasharray:301;stroke-dashoffset:301;animation:ringfill 2s ease-out .3s forwards;}
+  @keyframes ringfill{to{stroke-dashoffset:54;}} /* ~82/100 */
+  .ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ring-label b{font-size:1.5rem;font-weight:700;}
+  .ring-label span{font-size:.62rem;color:var(--on-surface-soft);font-family:var(--mono);}
+  .evidence-detail{flex:1;min-width:220px;}
+  .verdict-badge{display:inline-block;font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;background:#E6F4EA;color:var(--green);padding:4px 10px;border-radius:999px;font-weight:600;margin-bottom:10px;}
+  .layer-bars{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+  .layer-bar{display:flex;align-items:center;gap:10px;font-size:.78rem;color:var(--on-surface-soft);}
+  .layer-bar .label{width:100px;flex:none;font-family:var(--mono);font-size:.68rem;}
+  .layer-bar .track{flex:1;height:6px;background:#E1E3E6;border-radius:4px;overflow:hidden;}
+  .layer-bar .fill{height:100%;border-radius:4px;width:0;animation:fillbar 1.6s ease-out forwards;}
+  @keyframes fillbar{to{width:var(--w);}}
+  .layer-bar:nth-child(1) .fill{background:var(--blue);--w:78%;animation-delay:.5s;}
+  .layer-bar:nth-child(2) .fill{background:var(--green);--w:88%;animation-delay:.7s;}
+  .layer-bar:nth-child(3) .fill{background:var(--yellow);--w:80%;animation-delay:.9s;}
+
+  .kicker{font-family:var(--mono);font-size:.72rem;color:var(--blue-dark);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;font-weight:500;}
+  h2{font-weight:700;font-size:clamp(1.6rem,2.6vw,2.3rem);margin:0 0 16px;max-width:24ch;letter-spacing:-.01em;}
+  .section-lede{color:var(--on-surface-soft);max-width:62ch;margin-bottom:40px;}
+
+  .problem{background:var(--surface-dim);}
+  .problem-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;}
+  .problem-card{background:#fff;border:1px solid var(--outline);border-radius:var(--radius);padding:22px;border-top:4px solid var(--red);box-shadow:var(--shadow-1);opacity:0;transform:translateY(16px);transition:opacity .6s ease, transform .6s ease;}
+  .problem-card:nth-child(2){border-top-color:var(--yellow);}
+  .problem-card:nth-child(3){border-top-color:var(--blue);}
+  .problem-card:nth-child(4){border-top-color:var(--green);}
+  .problem-card.visible{opacity:1;transform:translateY(0);}
+  .problem-card .stamp{font-family:var(--mono);font-size:.66rem;color:var(--on-surface-soft);letter-spacing:.08em;margin-bottom:8px;}
+  .problem-card h3{font-size:.98rem;margin:0 0 8px;font-weight:700;}
+  .problem-card p{font-size:.86rem;color:var(--on-surface-soft);margin:0;}
+
+  /* 3-layer architecture */
+  .layers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:8px;}
+  .layer-card{background:#fff;border:1px solid var(--outline);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-1);opacity:0;transform:translateY(20px);transition:opacity .6s ease, transform .6s ease;position:relative;}
+  .layer-card.visible{opacity:1;transform:translateY(0);}
+  .layer-tag{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;padding:3px 9px;border-radius:999px;display:inline-block;margin-bottom:12px;font-weight:600;}
+  .layer-card:nth-child(1) .layer-tag{background:#E8F0FE;color:var(--blue-dark);}
+  .layer-card:nth-child(2) .layer-tag{background:#E6F4EA;color:var(--green);}
+  .layer-card:nth-child(3) .layer-tag{background:#FEF7E0;color:#B06D00;}
+  .layer-card h3{font-size:1.05rem;margin:0 0 8px;font-weight:700;}
+  .layer-card p{font-size:.86rem;color:var(--on-surface-soft);margin:0 0 12px;}
+  .layer-card ul{margin:0;padding-left:18px;font-size:.8rem;color:var(--on-surface-soft);}
+  .layer-card li{margin-bottom:4px;}
+  .weight-chip{position:absolute;top:20px;right:20px;font-family:var(--mono);font-size:.7rem;font-weight:700;color:var(--on-surface);}
+
+  .arch{background:var(--surface-dim);}
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;}
+  .flow-step{background:#fff;border:1px solid var(--outline);border-radius:12px;box-shadow:var(--shadow-1);padding:14px 16px;font-size:.82rem;min-width:140px;text-align:center;}
+  .flow-step b{display:block;font-family:var(--mono);font-size:.65rem;color:var(--blue-dark);margin-bottom:5px;letter-spacing:.05em;}
+  .flow-arrow{color:var(--on-surface-soft);font-size:1.2rem;}
+
+  .verdict-table{width:100%;border-collapse:collapse;margin-top:24px;font-size:.86rem;background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-1);}
+  .verdict-table th,.verdict-table td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--outline);}
+  .verdict-table th{background:var(--surface-dim);font-family:var(--mono);font-size:.7rem;letter-spacing:.05em;color:var(--on-surface-soft);text-transform:uppercase;}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;}
+
+  .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;}
+  .feature-card{background:#fff;border:1px solid var(--outline);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-1);opacity:0;transform:translateY(20px);transition:opacity .6s ease, transform .6s ease, box-shadow .2s ease;}
+  .feature-card:hover{box-shadow:var(--shadow-2);}
+  .feature-card.visible{opacity:1;transform:translateY(0);}
+  .feature-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:14px;color:#fff;}
+  .feature-card:nth-child(6n+1) .feature-icon{background:var(--blue);}
+  .feature-card:nth-child(6n+2) .feature-icon{background:var(--green);}
+  .feature-card:nth-child(6n+3) .feature-icon{background:var(--yellow);color:#3c2f00;}
+  .feature-card:nth-child(6n+4) .feature-icon{background:var(--red);}
+  .feature-card:nth-child(6n+5) .feature-icon{background:var(--blue);}
+  .feature-card:nth-child(6n+6) .feature-icon{background:var(--green);}
+  .feature-card h3{font-size:1.02rem;margin:0 0 6px;font-weight:700;}
+  .feature-card p{font-size:.85rem;color:var(--on-surface-soft);margin:0;}
+
+  .steps{counter-reset:step;display:grid;gap:14px;}
+  .step{display:flex;gap:16px;align-items:flex-start;}
+  .step-num{counter-increment:step;font-family:var(--mono);font-weight:700;width:34px;height:34px;flex:none;border-radius:50%;background:var(--surface-dim);border:1px solid var(--outline);color:var(--blue-dark);display:flex;align-items:center;justify-content:center;font-size:.8rem;}
+  .step-num::before{content:counter(step,decimal-leading-zero);}
+  .step p{margin:0;color:var(--on-surface-soft);font-size:.92rem;}
+  .step strong{color:var(--on-surface);}
+
+  .team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
+  .team-card{background:#fff;border:1px solid var(--outline);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow-1);}
+  .team-card .role{font-family:var(--mono);font-size:.68rem;color:var(--green);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;font-weight:600;}
+  .team-card h3{margin:0;font-size:1.05rem;font-weight:700;}
+
+  footer{border-top:1px solid var(--outline);padding:34px 0;text-align:center;color:var(--on-surface-soft);font-size:.82rem;}
+
+  @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand"><span class="brand-mark">CA</span> Creative Alibi</div>
+    <ul>
+      <li><a href="#masalah">Masalah</a></li>
+      <li><a href="#arsitektur">Arsitektur</a></li>
+      <li><a href="#fitur">Fitur</a></li>
+      <li><a href="#tutorial">Tutorial</a></li>
+      <li><a href="https://ai-alibi-cccxvdhsdfskhhvbu8ushj.streamlit.app/">Live Demo ↗</a></li>
+      <li><a href="https://github.com/indri007/ai-alibi">GitHub ↗</a></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Dibangun untuk IBM AI Builders Challenge · Word Add-in · v2.0.0</div>
+    <h1>Bukti bahwa karyamu <span class="accent">ditulis manusia</span> — bukan ditebak dari hasil akhirnya.</h1>
+    <p class="lede">Creative Alibi merekam proses menulis lewat empat layer forensik — perilaku, linguistik, verifikasi IBM watsonx.ai/ZeroGPT/Desklib, dan sertifikat ber-hash SHA-256 — untuk melindungi kreator dari tuduhan AI yang salah.</p>
+    <p class="quote">"Proof of human effort, not detection of AI."</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://ai-alibi-cccxvdhsdfskhhvbu8ushj.streamlit.app/">Coba Live Demo</a>
+      <a class="btn btn-ghost" href="https://github.com/indri007/ai-alibi">Lihat Source Code</a>
+    </div>
+
+    <div class="evidence-card">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 110 110">
+          <circle class="ring-bg" cx="55" cy="55" r="48"></circle>
+          <circle class="ring-fg" cx="55" cy="55" r="48"></circle>
+        </svg>
+        <div class="ring-label"><b>82</b><span>SCORE</span></div>
+      </div>
+      <div class="evidence-detail">
+        <span class="verdict-badge">● HUMAN_VERIFIED</span>
+        <div class="layer-bars">
+          <div class="layer-bar"><span class="label">L1 BEHAVIORAL</span><div class="track"><div class="fill"></div></div></div>
+          <div class="layer-bar"><span class="label">L2 LINGUISTIC</span><div class="track"><div class="fill"></div></div></div>
+          <div class="layer-bar"><span class="label">L3 EXTERNAL API</span><div class="track"><div class="fill"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="problem" id="masalah">
+  <div class="wrap">
+    <div class="kicker">Kenapa Ini Dibuat</div>
+    <h2>Tuduhan "ini dibuat AI" bisa menjatuhkan siapa saja — tanpa bukti nyata.</h2>
+    <p class="section-lede">Detector AI konvensional punya false-positive rate hingga 60% untuk penulis non-native, dan hanya menganalisis teks hasil akhir — melewatkan proses penciptaan sepenuhnya.</p>
+    <div class="problem-grid">
+      <div class="problem-card"><div class="stamp">MASALAH 01</div><h3>False accusation</h3><p>Penulis, jurnalis, dan mahasiswa dituduh pakai AI tanpa bukti, merusak reputasi dan mata pencaharian.</p></div>
+      <div class="problem-card"><div class="stamp">MASALAH 02</div><h3>Detector tidak reliable</h3><p>False-positive rate hingga 60% untuk penulis non-native English, tanpa ground truth yang bisa diverifikasi.</p></div>
+      <div class="problem-card"><div class="stamp">MASALAH 03</div><h3>Risiko kebocoran IP</h3><p>Kebanyakan detector mengharuskan upload teks penuh ke server pihak ketiga.</p></div>
+      <div class="problem-card"><div class="stamp">MASALAH 04</div><h3>Hanya analisis retroaktif</h3><p>Solusi yang ada menganalisis teks hasil akhir, melewatkan proses penciptaan sepenuhnya.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="arsitektur">
+  <div class="wrap">
+    <div class="kicker">Arsitektur Sistem</div>
+    <h2>Tiga mesin analisis independen, satu Forensic Confidence Score.</h2>
+    <p class="section-lede">L1 dan L2 berjalan 100% offline di browser — teks tidak pernah keluar dari perangkat. L3 baru aktif kalau pengguna secara eksplisit memberi consent.</p>
+
+    <div class="layers-grid">
+      <div class="layer-card"><span class="weight-chip">30%</span><div class="layer-tag">L1 · OFFLINE</div><h3>Behavioral Engine</h3><p>Poll dokumen Word tiap 1.2 detik lewat Office.js.</p><ul><li>Burst ratio (>40 karakter sekali ubah)</li><li>Jeda alami ≥4 detik</li><li>Jumlah revisi & durasi sesi</li></ul></div>
+      <div class="layer-card"><span class="weight-chip">40%</span><div class="layer-tag">L2 · OFFLINE</div><h3>Linguistic Engine</h3><p>8 metrik linguistik dihitung sepenuhnya di browser.</p><ul><li>Sentence burstiness & MATTR</li><li>Hapax legomena, Zipf compliance</li><li>Connective overuse, n-gram repetition</li></ul></div>
+      <div class="layer-card"><span class="weight-chip">30%</span><div class="layer-tag">L3 · CONSENT-BASED</div><h3>External API Ensemble</h3><p>Verifikasi silang lewat 3 provider yang sudah aktif & terverifikasi.</p><ul><li>IBM watsonx.ai (Granite <code>ibm/granite-13b-chat-v2</code>)</li><li>ZeroGPT (via RapidAPI)</li><li>Desklib — DeBERTa-v3-large, sidecar lokal</li></ul></div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step"><b>WORD</b>User menulis</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><b>L1+L2+L3</b>Analisis paralel</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><b>ENSEMBLE</b>Weighted avg + agreement</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><b>CERTIFICATE</b>SHA-256 + JSON</div>
+    </div>
+
+    <table class="verdict-table">
+      <tr><th>Skor</th><th>Verdict</th><th>Arti</th></tr>
+      <tr><td>≥ 80</td><td><span class="dot" style="background:var(--green)"></span>HUMAN_VERIFIED</td><td>Bukti forensik sangat kuat</td></tr>
+      <tr><td>65–79</td><td><span class="dot" style="background:#8BC98F"></span>HUMAN_LIKELY</td><td>Kemungkinan besar ditulis manusia</td></tr>
+      <tr><td>50–64</td><td><span class="dot" style="background:var(--yellow)"></span>MIXED</td><td>Indikator campuran</td></tr>
+      <tr><td>30–49</td><td><span class="dot" style="background:#F29A2E"></span>AI_LIKELY</td><td>Banyak indikator AI</td></tr>
+      <tr><td>&lt; 30</td><td><span class="dot" style="background:var(--red)"></span>AI_DETECTED</td><td>Pola AI kuat terdeteksi</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="fitur" class="problem">
+  <div class="wrap">
+    <div class="kicker">Fitur Utama</div>
+    <h2>Dari recording sampai sertifikat siap lampir.</h2>
+    <div class="features-grid">
+      <div class="feature-card"><div class="feature-icon">⏺</div><h3>Recording Session</h3><p>Start/pause/resume/stop dengan timer live & activity canvas real-time.</p></div>
+      <div class="feature-card"><div class="feature-icon">⚙️</div><h3>Konfigurasi Layer</h3><p>Toggle L2/L3, pilih provider eksternal, consent gate eksplisit.</p></div>
+      <div class="feature-card"><div class="feature-icon">📊</div><h3>Forensic Dashboard</h3><p>Ring score, breakdown per layer, 8 metrik linguistik, agreement bar.</p></div>
+      <div class="feature-card"><div class="feature-icon">📜</div><h3>Sertifikat Forensik</h3><p>JSON dengan SHA-256 hash, unduh atau sisipkan langsung ke dokumen.</p></div>
+      <div class="feature-card"><div class="feature-icon">💬</div><h3>Telegram Support Bot</h3><p><code>@Creativealibi_bot</code> — bantuan instalasi via DeepSeek/OpenRouter.</p></div>
+      <div class="feature-card"><div class="feature-icon">🔑</div><h3>Sistem Lisensi</h3><p>Aktivasi kode lisensi tersimpan di Google Cloud Storage, plus panel admin.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="tutorial">
+  <div class="wrap">
+    <div class="kicker">Tutorial Pemakaian</div>
+    <h2>Tujuh langkah dari buka Word sampai punya sertifikat forensik.</h2>
+    <div class="steps">
+      <div class="step"><div class="step-num"></div><p><strong>Buka Microsoft Word</strong>, aktifkan add-in Creative Alibi dari panel Add-ins.</p></div>
+      <div class="step"><div class="step-num"></div><p><strong>Klik "Start Recording"</strong> — timer dan activity canvas mulai berjalan.</p></div>
+      <div class="step"><div class="step-num"></div><p><strong>Tulis seperti biasa</strong>, bisa pause kalau ada interupsi.</p></div>
+      <div class="step"><div class="step-num"></div><p><strong>(Opsional) Aktifkan Layer 3</strong> di Settings dan centang consent untuk verifikasi silang.</p></div>
+      <div class="step"><div class="step-num"></div><p><strong>Klik "Stop Recording"</strong> — sistem otomatis menjalankan analisis forensik.</p></div>
+      <div class="step"><div class="step-num"></div><p><strong>Lihat Forensic Dashboard</strong>: ring score, breakdown per layer, dan verdict.</p></div>
+      <div class="step"><div class="step-num"></div><p><strong>Generate Certificate</strong> → unduh `.json` atau sisipkan ke dokumen Word.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="problem">
+  <div class="wrap">
+    <div class="kicker">Tim</div>
+    <h2>Dibangun untuk IBM AI Builders Challenge</h2>
+    <div class="team-grid">
+      <div class="team-card"><div class="role">Product & Development</div><h3>Indri Anjar Kartika Sari</h3></div>
+      <div class="team-card"><div class="role">Development</div><h3>Raja Chairul Wydmann</h3></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Creative Alibi © 2026 · v2.0.0 · Dibangun untuk IBM AI Builders Challenge</div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); } });
+  },{threshold:.15});
+  document.querySelectorAll('.problem-card, .feature-card, .layer-card').forEach(el=>observer.observe(el));
+</script>
+
+</body>
+</html>

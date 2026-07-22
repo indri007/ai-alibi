@@ -7,37 +7,51 @@
   <title>Creative Alibi — Forensic Proof</title>
   
   <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  
+  <!-- M3 Fonts and Material Symbols -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  
   <link rel="stylesheet" href="./taskpane.css" />
 </head>
 <body>
 
-  <!-- ================= HEADER ================= -->
+  <!-- ================= HEADER (M3) ================= -->
   <header class="ca-header">
     <div class="ca-header-left">
-      <div class="ca-logo-ring">A</div>
+      <div class="ca-logo-ring">
+        <span class="material-symbols-rounded" style="font-size: 24px;">policy</span>
+      </div>
       <div>
-        <h1>Creative Alibi<span class="ca-version">v2.0</span></h1>
-        <div class="ca-subtitle">Forensic Proof System</div>
+        <h1>Creative Alibi</h1>
+        <div class="ca-subtitle">Forensic Proof System v2.0</div>
       </div>
     </div>
-    <button class="ca-icon-btn" id="btn-settings" title="Pengaturan">⚙</button>
+    <button class="m3-icon-btn m3-ripple-container" id="btn-settings" title="Pengaturan">
+      <span class="material-symbols-rounded">settings</span>
+    </button>
   </header>
 
   <!-- ================= TABS ================= -->
   <div class="ca-tabs">
-    <button class="ca-tab active" data-target="tab-record">Rekam</button>
-    <button class="ca-tab" data-target="tab-forensic">Forensik</button>
-    <button class="ca-tab" data-target="tab-cert">Sertifikat</button>
+    <button class="ca-tab m3-ripple-container active" data-target="tab-record">
+      <span class="material-symbols-rounded">fiber_manual_record</span> Rekam
+    </button>
+    <button class="ca-tab m3-ripple-container" data-target="tab-forensic">
+      <span class="material-symbols-rounded">analytics</span> Forensik
+    </button>
+    <button class="ca-tab m3-ripple-container" data-target="tab-cert">
+      <span class="material-symbols-rounded">verified</span> Sertifikat
+    </button>
   </div>
 
   <main class="ca-body">
 
     <!-- TAB 1: RECORDING -->
     <div id="tab-record" class="ca-tab-content active">
-      <div class="ca-card ca-card--glass">
+      <div class="m3-card">
         <div class="ca-status-row">
           <span class="ca-dot ca-dot--idle" id="status-dot"></span>
           <span id="status-text">Siap merekam</span>
@@ -45,30 +59,36 @@
         <div class="ca-timer" id="timer">00:00:00</div>
         
         <div class="ca-btn-row">
-          <button class="ca-btn ca-btn--primary" id="btn-start">Mulai Rekam</button>
-          <button class="ca-btn" id="btn-pause" disabled>Jeda</button>
-          <button class="ca-btn ca-btn--danger" id="btn-stop" disabled>Berhenti</button>
+          <button class="m3-btn m3-btn--filled m3-ripple-container" id="btn-start">
+            <span class="material-symbols-rounded">play_arrow</span> Mulai Rekam
+          </button>
+          <button class="m3-btn m3-btn--tonal m3-ripple-container" id="btn-pause" disabled>
+            <span class="material-symbols-rounded">pause</span> Jeda
+          </button>
+          <button class="m3-btn m3-btn--error m3-ripple-container" id="btn-stop" disabled>
+            <span class="material-symbols-rounded">stop</span> Berhenti
+          </button>
         </div>
       </div>
 
-      <div class="ca-card">
-        <h2>Metadata Behavioral</h2>
+      <div class="m3-card">
+        <h2><span class="material-symbols-rounded">monitoring</span> Metadata Behavioral</h2>
         <div class="ca-metrics-grid">
-          <div class="ca-metric">
-            <span class="ca-metric-value" id="m-samples">0</span>
-            <span class="ca-metric-label">Sampel</span>
+          <div class="m3-metric">
+            <span class="m3-metric-value" id="m-samples">0</span>
+            <span class="m3-metric-label">Sampel</span>
           </div>
-          <div class="ca-metric">
-            <span class="ca-metric-value" id="m-edits">0</span>
-            <span class="ca-metric-label">Edit</span>
+          <div class="m3-metric">
+            <span class="m3-metric-value" id="m-edits">0</span>
+            <span class="m3-metric-label">Edit</span>
           </div>
-          <div class="ca-metric">
-            <span class="ca-metric-value" id="m-pauses">0</span>
-            <span class="ca-metric-label">Jeda</span>
+          <div class="m3-metric">
+            <span class="m3-metric-value" id="m-pauses">0</span>
+            <span class="m3-metric-label">Jeda</span>
           </div>
-          <div class="ca-metric">
-            <span class="ca-metric-value" id="m-bursts">0</span>
-            <span class="ca-metric-label">Lonjakan</span>
+          <div class="m3-metric">
+            <span class="m3-metric-value" id="m-bursts">0</span>
+            <span class="m3-metric-label">Lonjakan</span>
           </div>
         </div>
         <canvas id="activity-canvas"></canvas>
@@ -77,79 +97,64 @@
 
     <!-- TAB 2: FORENSIC DASHBOARD -->
     <div id="tab-forensic" class="ca-tab-content">
-      <div class="ca-card ca-card--forensic">
-        <h2>Forensic Confidence</h2>
+      <div class="m3-card">
+        <h2><span class="material-symbols-rounded">query_stats</span> Forensic Confidence</h2>
         
-        <!-- Big Ring -->
         <div class="ca-forensic-hero">
-          <div class="ca-forensic-ring">
-            <svg viewBox="0 0 120 120" class="ca-ring-svg">
-              <circle cx="60" cy="60" r="52" class="ca-ring-bg"/>
-              <circle cx="60" cy="60" r="52" class="ca-ring-fill" id="forensic-ring-fill" stroke-dasharray="326.7" stroke-dashoffset="326.7"/>
+          <div class="m3-ring-container">
+            <svg viewBox="0 0 120 120" class="m3-ring-svg">
+              <circle cx="60" cy="60" r="52" class="m3-ring-bg"/>
+              <circle cx="60" cy="60" r="52" class="m3-ring-fill" id="forensic-ring-fill" stroke-dasharray="326.7" stroke-dashoffset="326.7"/>
             </svg>
-            <div class="ca-ring-center">
-              <span class="ca-ring-score" id="forensic-score">--</span>
-              <span class="ca-ring-max">/ 100</span>
+            <div class="m3-ring-center">
+              <span class="m3-ring-score" id="forensic-score">--</span>
+              <span class="m3-ring-max">/ 100</span>
             </div>
           </div>
           
           <div class="ca-forensic-meta">
-            <div class="ca-verdict-badge" id="forensic-verdict">Menunggu Data</div>
+            <div class="m3-badge" id="forensic-verdict">
+              <span class="material-symbols-rounded" style="font-size:16px;">pending</span> Menunggu Data
+            </div>
             <div class="ca-forensic-label" id="forensic-label">Mulai sesi rekam untuk menghasilkan skor forensik.</div>
-            
-            <div class="ca-agreement-bar">
-              <div class="ca-agreement-fill" id="agreement-bar" style="width: 0%"></div>
-            </div>
-            <div class="ca-confidence-row">
-              <span class="ca-confidence-tag" id="confidence-tag">UNVERIFIED</span>
-              <span class="ca-agreement-label" id="agreement-label">Data tidak cukup</span>
-            </div>
           </div>
         </div>
         
-        <!-- Layer Grid -->
-        <div class="ca-layer-grid" style="margin-top: 16px;">
-          
+        <!-- Layer Grid (M3 Style) -->
+        <div style="margin-top: 16px;">
           <!-- Layer 1 -->
-          <div class="ca-layer-item" id="layer1-item">
-            <div class="ca-layer-icon color-blue">👁️</div>
-            <div class="ca-layer-info">
-              <div class="ca-layer-name">Layer 1: Behavioral</div>
-              <div class="ca-layer-desc">Analisis ritme, jeda, variasi kecepatan</div>
+          <div class="m3-score-item" id="layer1-item">
+            <div>
+              <div class="m3-score-item-title"><span class="material-symbols-rounded">visibility</span> Layer 1: Behavioral</div>
+              <div class="m3-score-item-sub">Analisis ritme, jeda, kecepatan</div>
             </div>
-            <div class="ca-layer-score" id="l1-score">--</div>
-            <div class="ca-layer-dot ca-layer-dot--inactive" id="l1-dot"></div>
+            <div class="m3-score-ring-sm" id="l1-score">--</div>
           </div>
 
           <!-- Layer 2 -->
-          <div class="ca-layer-item" id="layer2-item">
-            <div class="ca-layer-icon color-green">🔤</div>
-            <div class="ca-layer-info">
-              <div class="ca-layer-name">Layer 2: Linguistic</div>
-              <div class="ca-layer-desc">Struktur & pola kata (100% Lokal)</div>
+          <div class="m3-score-item" id="layer2-item">
+            <div>
+              <div class="m3-score-item-title"><span class="material-symbols-rounded">translate</span> Layer 2: Linguistic</div>
+              <div class="m3-score-item-sub">Struktur & pola kata (100% Lokal)</div>
             </div>
-            <div class="ca-layer-score" id="l2-score">--</div>
-            <div class="ca-layer-dot ca-layer-dot--inactive" id="l2-dot"></div>
+            <div class="m3-score-ring-sm" id="l2-score">--</div>
           </div>
           
           <!-- Layer 3 -->
-          <div class="ca-layer-item" id="layer3-item">
-            <div class="ca-layer-icon color-purple">🌐</div>
-            <div class="ca-layer-info">
-              <div class="ca-layer-name">Layer 3: External API</div>
-              <div class="ca-layer-desc" id="l3-desc">Memerlukan consent & setup</div>
+          <div class="m3-score-item" id="layer3-item">
+            <div>
+              <div class="m3-score-item-title"><span class="material-symbols-rounded">public</span> Layer 3: External API</div>
+              <div class="m3-score-item-sub" id="l3-desc">Memerlukan consent & setup</div>
             </div>
-            <div class="ca-layer-score" id="l3-score">--</div>
-            <div class="ca-layer-dot ca-layer-dot--inactive" id="l3-dot"></div>
+            <div class="m3-score-ring-sm" id="l3-score">--</div>
           </div>
-
         </div>
       </div>
       
       <!-- Linguistic Breakdown (Initially Hidden) -->
-      <div class="ca-card hidden" id="linguistic-card">
-        <h2>Detail Linguistik (L2)</h2>
-        <div class="ca-metrics-breakdown" id="linguistic-breakdown">
+      <div class="m3-card hidden" id="linguistic-card">
+        <h2><span class="material-symbols-rounded">psychology</span> Detail Linguistik (L2)</h2>
+        <div class="ca-log-console" id="linguistic-breakdown">
           <!-- Populated by JS -->
         </div>
       </div>
@@ -157,89 +162,31 @@
 
     <!-- TAB 3: CERTIFICATE -->
     <div id="tab-cert" class="ca-tab-content">
-      <div class="ca-card">
-        <h2>Sertifikat Proses</h2>
-        <p class="ca-hint">Bukti sanggahan komprehensif yang bisa dilampirkan bersama dokumen Anda.</p>
+      <div class="m3-card">
+        <h2><span class="material-symbols-rounded">workspace_premium</span> Sertifikat Proses</h2>
+        <p style="font-size:12px; color:var(--md-sys-color-on-surface-variant); margin-bottom:16px;">Bukti sanggahan komprehensif yang bisa dilampirkan bersama dokumen Anda.</p>
+        
         <div class="ca-btn-row">
-          <button class="ca-btn ca-btn--secondary" id="btn-generate-cert" disabled>Buat Sertifikat</button>
-          <button class="ca-btn" id="btn-download" disabled>JSON</button>
-          <button class="ca-btn" id="btn-insert" disabled>Sisipkan</button>
+          <button class="m3-btn m3-btn--filled m3-ripple-container" id="btn-generate-cert" disabled>
+            <span class="material-symbols-rounded">add_circle</span> Buat Sertifikat
+          </button>
+          <button class="m3-btn m3-btn--tonal m3-ripple-container" id="btn-download" disabled>
+            <span class="material-symbols-rounded">download</span> JSON
+          </button>
         </div>
-        <div class="ca-certificate hidden" id="certificate-preview"></div>
+        
+        <div class="ca-log-console hidden" id="certificate-preview" style="margin-top: 16px;"></div>
       </div>
 
-      <button class="ca-btn ca-btn--ghost" id="btn-reset" style="width: 100%">
-        Reset Sesi & Mulai Ulang
+      <button class="m3-btn m3-btn--error m3-ripple-container" id="btn-reset" style="width: 100%; justify-content:center;">
+        <span class="material-symbols-rounded">restart_alt</span> Reset Sesi
       </button>
     </div>
 
   </main>
 
-  <div class="ca-footnote">
-    <strong>Privasi Terjamin:</strong> Layer 1 & 2 berjalan sepenuhnya offline di perangkat Anda. Konten dokumen tidak pernah dikirim ke server luar kecuali Anda secara eksplisit mengaktifkan Layer 3 (API Eksternal).
-  </div>
-
-  <!-- ================= SETTINGS OVERLAY ================= -->
-  <div class="ca-settings-overlay hidden" id="settings-overlay">
-    <div class="ca-settings-panel">
-      <div class="ca-settings-header">
-        <h2>Pengaturan</h2>
-        <button class="ca-icon-btn" id="btn-close-settings">✖</button>
-      </div>
-      <div class="ca-settings-body">
-        
-        <div class="ca-setting-group">
-          <h3>Layer 2 — Linguistic Engine</h3>
-          <label class="ca-toggle">
-            <input type="checkbox" id="setting-l2" checked />
-            <span class="ca-toggle-slider"></span>
-            <span>Aktifkan analisis lokal (Offline)</span>
-          </label>
-        </div>
-
-        <div class="ca-setting-group">
-          <h3>Layer 3 — External API</h3>
-          <label class="ca-toggle" style="margin-bottom: 12px;">
-            <input type="checkbox" id="setting-l3" />
-            <span class="ca-toggle-slider"></span>
-            <span>Aktifkan deteksi pihak ketiga</span>
-          </label>
-          
-          <div id="l3-config" class="hidden">
-            <div class="ca-select-row">
-              <span style="width: 60px;">Provider:</span>
-              <select id="setting-l3-provider" class="ca-select">
-                <option value="desklib">Desklib (RAID #1) — Lokal</option>
-                <option value="watsonx">IBM watsonx.ai (Granite)</option>
-                <option value="gptzero">GPTZero</option>
-                <option value="zerogpt">ZeroGPT</option>
-              </select>
-            </div>
-            <div style="margin-bottom: 8px;">
-              <span style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Proxy URL</span>
-              <input type="url" class="ca-input" id="setting-l3-proxy" value="http://localhost:3001" placeholder="http://localhost:3001" />
-            </div>
-            
-            <div class="ca-consent-box">
-              <p class="ca-hint ca-hint--warn">⚠️ <strong>Persetujuan Data</strong><br/>Isi tulisan Anda akan dikirim ke API yang dipilih untuk analisis. Proses ini memerlukan koneksi internet.</p>
-              <label class="ca-toggle">
-                <input type="checkbox" id="setting-l3-consent" />
-                <span class="ca-toggle-slider"></span>
-                <span>Saya setuju mengirim teks</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= SUPPORT CHAT BUTTON & MODAL ================= -->
-  <button class="ca-chat-btn" id="chat-btn" title="Bantuan">💬</button>
-  
-  <div class="ca-chat-modal hidden" id="chat-modal">
-    <iframe class="ca-chat-frame" id="chat-frame" src=""></iframe>
+  <div style="font-size:10px; color:var(--md-sys-color-on-surface-variant); padding:0 16px; text-align:center;">
+    <strong>Privasi Terjamin:</strong> Layer 1 & 2 berjalan sepenuhnya offline di perangkat Anda.
   </div>
 
   <!-- Modules -->

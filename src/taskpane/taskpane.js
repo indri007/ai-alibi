@@ -707,4 +707,35 @@ document.addEventListener("DOMContentLoaded", () => {
       chatBtn.textContent = "💬";
     }
   });
+
+  // ============================================================
+  // Material 3 Ripple Effect Logic
+  // ============================================================
+  const rippleContainers = document.querySelectorAll(".m3-ripple-container");
+  rippleContainers.forEach(container => {
+    container.addEventListener("mousedown", function (e) {
+      // Don't ripple if disabled
+      if (this.disabled) return;
+
+      const rect = this.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      const ripple = document.createElement("span");
+      ripple.classList.add("m3-ripple");
+      
+      // Calculate radius to cover the element
+      const radius = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = `${radius}px`;
+      ripple.style.left = `${x - radius / 2}px`;
+      ripple.style.top = `${y - radius / 2}px`;
+      
+      this.appendChild(ripple);
+      
+      // Clean up ripple element after animation completes (600ms matching CSS)
+      setTimeout(() => {
+        ripple.remove();
+      }, 600);
+    });
+  });
 });
