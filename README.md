@@ -1,184 +1,143 @@
-# Creative Alibi v2.0 - The "Proof of Human Effort" Protocol
+# Creative Alibi v2.0 — The "Proof of Human Effort" Protocol 🛡️
+
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ai-alibi-cccxvdhsdfskhhvbu8ushj.streamlit.app/)
+[![IBM watsonx.ai](https://img.shields.io/badge/IBM%20watsonx.ai-Granite%20Model-blue.svg)](https://www.ibm.com/watsonx)
+[![Word Add-in](https://img.shields.io/badge/Microsoft%20Word-Add--in%20v2.0-0078D4.svg)](https://www.microsoft.com/microsoft-365/word)
+
+---
+
+## 🔗 Quick Links & Live Demos
+
+| Component | Link / URL | Description |
+|---|---|---|
+| 🎈 **Streamlit Web App (Live)** | [`https://ai-alibi-cccxvdhsdfskhhvbu8ushj.streamlit.app/`](https://ai-alibi-cccxvdhsdfskhhvbu8ushj.streamlit.app/) | Interactive web UI for instant text verification & certificate generation |
+| ⚡ **Cloud Run Backend Proxy** | [`https://ai-alibi-backend-994794168239.asia-southeast2.run.app`](https://ai-alibi-backend-994794168239.asia-southeast2.run.app) | Secure proxy server powering API integrations |
+| 📄 **Word Add-in Manifest** | [`https://ai-alibi-backend-994794168239.asia-southeast2.run.app/manifest.xml`](https://ai-alibi-backend-994794168239.asia-southeast2.run.app/manifest.xml) | Office 365 XML manifest for Microsoft Word |
 
 ---
 
 # 🇬🇧 English
 
-**Creative Alibi** is a Microsoft Word Add-in that acts as a digital notary, recording the process of writing to mathematically prove that the text was created by a human. It provides defense against false accusations from faulty AI detectors.
+**Creative Alibi** is a digital notary system and Microsoft Word Add-in that mathematically proves text was authored by a human. It records typing behavioral metadata, evaluates offline linguistic signatures, and integrates with enterprise AI detectors to protect creators against false AI detector accusations.
 
-Built for the **AI Builders Challenge** — theme "Reimagine Creative Industries with AI".
+Built for the **IBM AI Builders Challenge** — theme "Reimagine Creative Industries with AI".
 
-### Architecture (Multi-Layer Forensics)
-1. **Layer 1: Behavioral Engine (Offline)** — Analyzes keystroke rhythms, editing bursts, and pauses.
-2. **Layer 2: Linguistic Engine (Offline)** — Analyzes lexical diversity using Zipf's Law and Hapax Legomena.
-3. **Layer 3: External API Verification (Consent-based)** — Integrates with powerful AI models like **IBM watsonx.ai (Granite)**, GPTZero, ZeroGPT, and Desklib through a secured proxy server on Cloud Run.
-4. **Layer 4: Blockchain Timestamping** — Bitcoin-anchored proof via OpenTimestamps.
-
-### Why IBM watsonx.ai?
-For the IBM AI Builders Challenge, we leverage **IBM watsonx.ai** and its Granite foundation models. By analyzing linguistic patterns through Granite models, we get an enterprise-grade forensic classification to complement our local offline layers.
-
-### Quick Setup
-```bash
-npm install
-npm run server      # backend proxy on localhost:3001
-npm run dev-server   # taskpane dev server
-```
-> Note: `npm run dev:all` uses a Windows-only `start` command and won't work on macOS/Linux. Run `server` and `dev-server` in two separate terminals instead, or install `concurrently` to combine them.
+### 🏛️ Multi-Layer Forensic Architecture
+1. **Layer 1: Behavioral Engine (Offline / Local)** — Analyzes typing rhythm, editing bursts, deletion revisions, and natural thinking pauses.
+2. **Layer 2: Offline Linguistic Engine (Local)** — Evaluates vocabulary richness (MATTR), sentence length variation (Burstiness), Hapax Legomena ratio, and AI connective word overuse.
+3. **Layer 3: External API Ensemble Verification** — Integrates with **IBM watsonx.ai (Granite Model `ibm/granite-13b-chat-v2`)**, ZeroGPT (RapidAPI), and Desklib (DeBERTa-v3).
+4. **Layer 4: Digital Authenticity Certificate** — SHA-256 hashed integrity proof with exportable JSON certificate.
 
 ---
 
 # 🇮🇩 Bahasa Indonesia
 
-**Creative Alibi** adalah Add-in Microsoft Word yang bertindak sebagai notaris digital, merekam proses mengetik untuk membuktikan secara matematis bahwa teks tersebut dibuat oleh manusia murni. Aplikasi ini memberikan perlindungan dari tuduhan palsu *AI detector*.
+**Creative Alibi** adalah sistem notaris digital dan Add-in Microsoft Word yang membuktikan secara matematis bahwa sebuah karya tulis dibuat murni oleh manusia. Sistem ini merekam ritme mengetik, menguji pola linguistik secara *offline*, dan mengonfirmasi hasil dengan model AI *enterprise* untuk melindungi penulis dari tuduhan palsu *AI detector*.
 
-### Arsitektur (Multi-Layer Forensics)
-1. **Layer 1: Mesin Perilaku (Offline)** — Menganalisis ritme ketikan, lonjakan (*burst*) penyalinan, dan jeda natural.
-2. **Layer 2: Mesin Linguistik (Offline)** — Menganalisis kekayaan kosakata menggunakan Hukum Zipf dan *Hapax Legomena*.
-3. **Layer 3: Verifikasi API Eksternal (Berbasis Persetujuan)** — Terintegrasi dengan model AI canggih seperti **IBM watsonx.ai (Granite)**, GPTZero, ZeroGPT, dan Desklib melalui proxy server yang aman di Cloud Run.
-4. **Layer 4: Blockchain Timestamping** — Bukti timestamp berbasis Bitcoin via OpenTimestamps.
+Dibuat khusus untuk **IBM AI Builders Challenge**.
 
-### Kenapa menggunakan IBM watsonx.ai?
-Khusus untuk IBM AI Builders Challenge, kami memanfaatkan **IBM watsonx.ai** dengan model unggulannya, *Granite*. Analisis dari *foundation model* IBM memberikan tingkat klasifikasi forensik standar *enterprise* yang melengkapi algoritma *offline* lokal kami.
+### 🏛️ Arsitektur Deteksi Multi-Layer
+1. **Layer 1: Mesin Perilaku (Behavioral - Offline)** — Merekam variasi kecepatan ketikan, jeda berpikir alami, lonjakan masukan teks (*burst*), serta statistik penghapusan/revisi.
+2. **Layer 2: Mesin Linguistik (Linguistic - Offline)** — Mengukur keanekaragaman kata (*MATTR*), variasi panjang kalimat (*Burstiness*), kata unik (*Hapax Legomena*), serta pengulangan kata penghubung khas AI.
+3. **Layer 3: Verifikasi Ensemble API Eksternal** — Terintegrasi langsung dengan **IBM watsonx.ai (Granite Model `ibm/granite-13b-chat-v2`)**, ZeroGPT (RapidAPI), dan Desklib (DeBERTa-v3-large).
+4. **Layer 4: Sertifikat Keaslian Digital** — Menghasilkan sertifikat bukti forensik digital ber-hash SHA-256 yang dapat diunduh (JSON).
 
-### Cara Menjalankan (Lokal)
+---
+
+## 🟢 Status Integrasi Provider API Layer 3
+
+| Provider API | Status | Model / Platform | Keterangan |
+|---|---|---|---|
+| **IBM watsonx.ai** | 🟢 **AKTIF & VERIFIED** | `ibm/granite-13b-chat-v2` (`us-south`) | Terhubung via IAM Token & Project `ai alibi` |
+| **ZeroGPT** | 🟢 **AKTIF & VERIFIED** | RapidAPI Engine | Terhubung via RapidAPI Proxy Key |
+| **Desklib** | 🟢 **AKTIF** | DeBERTa-v3-large (`:5000`) | Self-hosted local sidecar detector |
+
+---
+
+## 📖 Cara Penggunaan (3 Pilihan Akses)
+
+### 1. 🎈 Opsi 1: Menggunakan Streamlit Web App (Tanpa Install Word)
+1. Buka link web app: **[`https://ai-alibi-cccxvdhsdfskhhvbu8ushj.streamlit.app/`](https://ai-alibi-cccxvdhsdfskhhvbu8ushj.streamlit.app/)**
+2. Tempel teks tulisan/artikel ilmiah Anda pada kolom input (minimal 50 kata).
+3. Klik **🔍 Jalankan Analisis Multi-Layer**.
+4. Lihat **Forensic Confidence Score** dan unduh **Sertifikat Keaslian (JSON)**.
+
+---
+
+### 2. 📝 Opsi 2: Menggunakan Microsoft Word Add-in
+1. Buka Microsoft Word (Desktop / Web / Mac / iPad).
+2. Pilih menu **Insert** ➔ **Get Add-ins** ➔ **Upload My Add-in**.
+3. Masukkan file `manifest.xml` lokal atau link manifest:  
+   `https://ai-alibi-backend-994794168239.asia-southeast2.run.app/manifest.xml`
+4. Tab **Creative Alibi** akan muncul di bagian atas Microsoft Word.
+5. Klik **Buka Panel Forensik** untuk mulai menulis dengan perlindungan rekam jejak.
+
+---
+
+### 3. 💻 Opsi 3: Menjalankan Secara Lokal (Developer Mode)
+
 ```bash
+# 1. Clone repository
+git clone https://github.com/indri007/ai-alibi.git
+cd ai-alibi
+
+# 2. Install dependency
 npm install
-cp server/.env.example server/.env   # isi API key masing-masing provider
-npm run server      # backend proxy di localhost:3001
-npm run dev-server   # taskpane dev server
+
+# 3. Jalankan Backend Express Proxy Server (Port 3001)
+npm run start-server
+
+# 4. Jalankan Webpack Dev Server untuk Word Add-in (Port 3000)
+npm run dev-server
+
+# 5. Jalankan Streamlit App (Lokal)
+streamlit run streamlit_app.py
 ```
 
 ---
 
-## 🔗 Live Demo
+## 🧪 Contoh Request API Proxy (CLI)
 
-### 🎈 Streamlit Interactive Web App (Live)
-**Streamlit App URL: [`https://ai-alibi-cccxvdhsdfskhhvbu8ushj.streamlit.app/`](https://ai-alibi-cccxvdhsdfskhhvbu8ushj.streamlit.app/)**
-
-### ⚡ Backend Proxy & Cloud Run
-Backend proxy server berjalan di Google Cloud Run:
-
-**Base URL: `https://ai-alibi-backend-994794168239.asia-southeast2.run.app`**
-
-| Resource | URL |
-|---|---|
-| Health check | [`/health`](https://ai-alibi-backend-994794168239.asia-southeast2.run.app/health) |
-| Manifest add-in | [`/manifest.xml`](https://ai-alibi-backend-994794168239.asia-southeast2.run.app/manifest.xml) |
-| Taskpane UI | [`/taskpane.html`](https://ai-alibi-backend-994794168239.asia-southeast2.run.app/taskpane.html) |
-
-Detector model lokal (Desklib) berjalan sebagai service terpisah:
-
-| Service | URL |
-|---|---|
-| **desklib-detector** | https://desklib-detector-994794168239.asia-southeast2.run.app |
-
----
-
-## 📖 Tutorial Penggunaan
-
-### 1. 🚀 Akses API Cloud Run
-
-| Endpoint | Method | Auth | Deskripsi |
-|----------|--------|------|-----------|
-| `/health` | GET | — | Cek status server, provider aktif, dan kesehatan dependency (Desklib, GCS) |
-| `/api/detect` | POST | X-API-Key | Deteksi apakah teks buatan AI |
-| `/api/support` | POST | — | Chat dengan support AI |
-| `/api/license/request` | POST | — | Ajukan permintaan akses lisensi |
-| `/api/admin/*` | GET/POST | Admin Password | Kelola lisensi (dashboard admin) |
-
-### 2. 🔬 Deteksi Teks AI
-**Request:**
 ```bash
-curl -X POST https://ai-alibi-backend-994794168239.asia-southeast2.run.app/api/detect \
+# Testing IBM watsonx.ai via Express Proxy
+curl -X POST http://localhost:3001/api/detect \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: <api-key-kamu>" \
-  -d '{"provider":"desklib","text":"Teks yang ingin diperiksa (minimum 50 karakter)..."}'
+  -d '{
+    "provider": "watsonx",
+    "text": "Penelitian ini menganalisis bukti forensik ritme penulisan dan distribusi frekuensi kata alami manusia."
+  }'
 ```
-
-**Status provider saat ini:**
-| Provider | Status | Keterangan |
-|----------|--------|------------|
-| `desklib` | ✅ Aktif | Model lokal DeBERTa-v3 (self-hosted di Cloud Run) |
-| `zerogpt` | ⚠️ Key terpasang, akses API masih ditolak (403) | Menunggu konfirmasi dari support ZeroGPT |
-| `watsonx` | ⚠️ Key tidak valid | Perlu akun IBM Cloud baru |
-| `gptzero` | ⬜ Belum dikonfigurasi | Butuh API key dari gptzero.me |
-| `hix` | ⬜ Belum dikonfigurasi | Butuh kredensial HIX premium |
-
-### 3. 💬 Support Chat
-```bash
-curl -X POST https://ai-alibi-backend-994794168239.asia-southeast2.run.app/api/support \
-  -H "Content-Type: application/json" \
-  -d '{"message":"Halo, bagaimana cara kerja Creative Alibi?"}'
-```
-
-### 4. 📝 Integrasi Microsoft Word
-1. Clone repo: `git clone https://github.com/indri007/ai-alibi.git`
-2. Buka Word → **Insert** → **Get Add-ins** → **Upload My Add-in**
-3. Masukkan URL manifest: `https://ai-alibi-backend-994794168239.asia-southeast2.run.app/manifest.xml`
-4. Tab **Creative Alibi** akan muncul di ribbon, sudah terhubung otomatis ke Cloud Run
-
-### 5. 🔑 Sistem Lisensi
-Creative Alibi menggunakan alur persetujuan akses berbasis email:
-1. Pengguna mengajukan permintaan akses lewat form
-2. Admin menerima email approval dengan tombol **Setujui**/**Tolak**
-3. Setelah disetujui, kode lisensi otomatis dikirim ke email pemohon
-4. Kode lisensi dimasukkan di halaman aktivasi add-in
-
-Admin juga bisa generate lisensi manual lewat CLI:
-```bash
-node server/scripts/generate-license.js 365 "nama pembeli"
-```
-
-### 6. 🛠️ Fitur Utama
-- ✅ **Keystroke Forensics** — Rekam kebiasaan mengetik
-- ✅ **Linguistic Analysis** — Analisis gaya bahasa (Zipf's Law)
-- ✅ **Multi-Provider Detection** — Desklib, ZeroGPT, watsonx, GPTZero, HIX
-- ✅ **Real-time Tracking** — Pantau proses menulis langsung
-- ✅ **Digital Certificate** — Bukti otentik tulisan manusia
-- ✅ **Blockchain Timestamping** — OpenTimestamps (Bitcoin-anchored)
-- ✅ **Support Chat AI** — Tanya jawab langsung
-- ✅ **Sistem Lisensi** — Approval akses berbasis email
-
-### 7. 🏗️ Struktur Project
-```
-server/
-├── index.js               # Entry point utama
-├── config/env.js          # Validasi environment variable saat startup
-├── utils/logger.js        # Logging terstruktur
-├── routes/                 # Route per-domain
-│   ├── auth.js             # Google OAuth
-│   ├── detect.js           # Endpoint deteksi AI
-│   ├── support.js          # Support chat
-│   └── admin.js             # Manajemen lisensi (rate-limited)
-├── middleware/
-│   └── errorHandler.js      # Error handler terpusat
-├── lib/
-│   ├── licenses.js          # Logic lisensi (GCS-backed)
-│   ├── mailer.js            # Kirim email approval via Gmail
-│   └── healthChecks.js       # Deep health check (Desklib, GCS)
-├── providers/                # Handler tiap AI detector
-│   ├── desklib.js
-│   ├── gptzero.js
-│   ├── zerogpt.js
-│   ├── watsonx.js
-│   └── hix.js
-├── scripts/
-│   └── generate-license.js   # CLI generate lisensi manual
-└── public/                    # Static assets (taskpane, admin dashboard)
-```
-
-### 8. 🐳 Deploy Sendiri (Cloud Run)
-```bash
-gcloud run deploy ai-alibi-backend \
-  --source . \
-  --region asia-southeast2 \
-  --allow-unauthenticated
-```
-
-Environment variable & secret dikelola lewat Google Secret Manager — lihat `server/.env.example` untuk daftar lengkap variable yang dibutuhkan (`ZEROGPT_API_KEY`, `WATSONX_API_KEY`, `WATSONX_PROJECT_ID`, `GMAIL_APP_PASSWORD`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `API_KEY`, dll).
 
 ---
 
-## 👥 Tim
+## 🛠️ Struktur Project
 
-Dibangun oleh tim 5 orang lintas disiplin (AI, Industrial, Electrical Engineering) untuk AI Builders Challenge.
+```
+ai-alibi/
+├── streamlit_app.py       # Streamlit Live Web App Dashboard
+├── manifest.xml           # Microsoft Word Add-in Manifest (Valid Office 365)
+├── package.json           # Scripts & Node Dependencies
+├── server/
+│   ├── index.js           # Express Proxy Server Entry Point
+│   ├── routes/
+│   │   └── detect.js      # Router untuk API /api/detect
+│   ├── providers/
+│   │   ├── watsonx.js     # IBM watsonx.ai Granite Model Provider
+│   │   ├── zerogpt.js     # ZeroGPT RapidAPI Provider
+│   │   └── desklib.js     # Desklib Local Model Provider
+│   └── detector/          # Python FastAPI Local Detector Sidecar
+└── src/
+    └── taskpane/          # Frontend Microsoft Word Add-in UI & Engines
+        ├── taskpane.html  # HTML View
+        ├── taskpane.css   # Styling (Dark Mode & Glassmorphism)
+        ├── taskpane.js    # Taskpane Controller
+        ├── forensic-engine.js   # Multi-layer Scoring & Payload Generator
+        ├── linguistic-engine.js # Offline Zipf & MATTR Linguistic Calculator
+        └── api-detector.js      # Frontend API Handler
+```
+
+---
+
+## 👥 Tim Creative Alibi
+
+Dibangun oleh tim 5 orang lintas disiplin untuk **IBM AI Builders Challenge** 2026.
