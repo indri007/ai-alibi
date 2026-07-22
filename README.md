@@ -8,11 +8,11 @@
 
 ## 🔗 Quick Links & Live Demos
 
-| Component | Link / URL | Description |
+| Component | Link / Location | Description |
 |---|---|---|
 | 🎈 **Streamlit Web App (Live)** | [`https://ai-alibi-cccxvdhsdfskhhvbu8ushj.streamlit.app/`](https://ai-alibi-cccxvdhsdfskhhvbu8ushj.streamlit.app/) | Interactive web UI for instant text verification & certificate generation |
-| ⚡ **Cloud Run Backend Proxy** | [`https://ai-alibi-backend-994794168239.asia-southeast2.run.app`](https://ai-alibi-backend-994794168239.asia-southeast2.run.app) | Secure proxy server powering API integrations |
-| 📄 **Word Add-in Manifest** | [`https://ai-alibi-backend-994794168239.asia-southeast2.run.app/manifest.xml`](https://ai-alibi-backend-994794168239.asia-southeast2.run.app/manifest.xml) | Office 365 XML manifest for Microsoft Word |
+| 📄 **Word Add-in Manifest** | [`manifest.xml`](manifest.xml) | Office 365 XML manifest file for Microsoft Word (Sideloading) |
+| 💻 **Express Backend Proxy** | `http://localhost:3001` | Express backend proxy server (`npm run start-server`) |
 
 ---
 
@@ -64,13 +64,20 @@ Dibuat khusus untuk **IBM AI Builders Challenge**.
 
 ---
 
-### 2. 📝 Opsi 2: Menggunakan Microsoft Word Add-in
-1. Buka Microsoft Word (Desktop / Web / Mac / iPad).
-2. Pilih menu **Insert** ➔ **Get Add-ins** ➔ **Upload My Add-in**.
-3. Masukkan file `manifest.xml` lokal atau link manifest:  
-   `https://ai-alibi-backend-994794168239.asia-southeast2.run.app/manifest.xml`
-4. Tab **Creative Alibi** akan muncul di bagian atas Microsoft Word.
-5. Klik **Buka Panel Forensik** untuk mulai menulis dengan perlindungan rekam jejak.
+### 2. 📝 Opsi 2: Menggunakan Microsoft Word Add-in (Sideloading Lokal)
+1. Clone repository:  
+   ```bash
+   git clone https://github.com/indri007/ai-alibi.git
+   cd ai-alibi
+   npm install
+   ```
+2. Jalankan server lokal:  
+   `npm run start-server` (Backend Proxy di `http://localhost:3001`)  
+   `npm run dev-server` (Webpack UI di `https://localhost:3000`)
+3. Buka Microsoft Word (Desktop / Web / Mac / iPad).
+4. Pilih menu **Insert** ➔ **Get Add-ins** ➔ **Upload My Add-in**.
+5. Upload file **`manifest.xml`** dari folder repository lokal Anda.
+6. Tab **Creative Alibi** akan muncul di ribbon Microsoft Word.
 
 ---
 
