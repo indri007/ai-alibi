@@ -41,7 +41,7 @@ const MAX_CACHE_SIZE = 20;
 
 let userConsent = false;
 let activeProvider = null;
-let backendUrl = "https://ai-alibi-backend-994794168239.asia-southeast2.run.app";
+let backendUrl = "http://localhost:3001";
 
 // GANTI STRING DI BAWAH INI dengan API_KEY yang sama persis
 // dengan yang di-set di Cloud Run env var backend (ai-alibi-backend)
